@@ -2,6 +2,8 @@
 define('R_LOGIN_PASSWORD', 'login_password');
 define('R_ERROR', 'error');
 define('R_OK', 'ok');
+define('R_EMPTY', 'empty');
+
 define('DB_TABLE_ALCOHOLS', 'main_alcohols');
 define('DB_TABLE_USER_ALCOHOLS', 'user_alcohols');
 define('DB_TABLE_USERS', 'users');
@@ -14,13 +16,13 @@ class Api
      * Profile data used by download profile. Pull it */
     public $profileData;
     /**
-     * @var Database mysqli
-     */
-    private $db;
-    /**
      * @var int
      */
     public $profileID;
+    /**
+     * @var Database mysqli
+     */
+    private $db;
 
     public function __construct($db)
     {
@@ -141,7 +143,7 @@ class Api
             } else
                 return R_LOGIN_PASSWORD;
         } else
-            return 'empty';
+            return R_EMPTY;
     }
 
     /**
@@ -164,7 +166,7 @@ class Api
             $result = $this->db->query("SELECT PERMISSIONS,ACTIVATION,ID FROM users WHERE (LOGIN = '$login' OR EMAIL= '$login') AND PASSWORD = '$md5password'");
 
             Log::d(mysqli_error($this->db));
-            if ($this->db->affected_rows == 1) {
+            if ($result->num_rows == 1) {
                 $row = $result->fetch_assoc();
                 if (strlen($row['ACTIVATION']) < 2) {
                     $this->profileID = $row['ID'];
@@ -179,7 +181,7 @@ class Api
             } else
                 return R_LOGIN_PASSWORD;
         } else
-            return 'empty';
+            return R_EMPTY;
     }
 
     public function reportIssue($input)
@@ -224,7 +226,7 @@ class Api
             $md5password = md5(utf8_encode($password));
             $result = $this->db->query("SELECT SEX,WEIGHT,EMAIL FROM users WHERE (`LOGIN` = '$login' OR `EMAIL`= '$login') AND `PASSWORD` = '$md5password'");
 
-            if ($this->db->affected_rows == 1) {
+            if ($result->num_rows == 1) {
                 $row = $result->fetch_assoc();
                 $sex = -1;
                 switch ($row['SEX']) {
@@ -251,6 +253,10 @@ class Api
         }
     }
 
+    /**
+     * @param $input array('id'=>int,'content'=>string)
+     * @return 'no_id'|'empty_info'|R_LOGIN_PASSWORD|R_EMPTY
+     */
     public function commentAlcohol($input)
     {
         if (!empty($input)) {
@@ -283,11 +289,45 @@ class Api
             } else
                 return R_LOGIN_PASSWORD;
         } else
-            return 'empty';
+            return R_EMPTY;
     }
 
     public function fetchFlags()
     {
         $query_string = "SELECT main_alcohols.NAME,main_alcohols.PRICE,alcohol_flags.content FROM main_alcohols,alcohol_flags WHERE main_alcohols.ID = alcohol_flags.alcoholID";
+    }
+
+    /**
+     * @param $input array('alcohol_id'=>int)
+     * @return array array('result'=> result,
+     * 'data'=>array('date'=>string,
+     * 'content'=>string,
+     * 'author'=>string))
+     */
+    public function fetchComments($input)
+    {
+        if (isset($input['alcohol_id'])) {
+            $alcohol_id = $this->db->real_escape_string($input['alcohol_id']);
+            $query_string = "SELECT time,content,LOGIN FROM alcohol_comments,users WHERE alcohol_comments.userID= users.ID AND alcohol_comments.alcoholID={$alcohol_id} ORDER BY alcohol_comments.time DESC";
+            $query = $this->db->query($query_string);
+            if (mysqli_num_rows($query) != 0) {
+                $result = array();
+                while ($row = $query->fetch_assoc()) {
+                    $alc = array();
+                    $alc['date'] = $row['time'];
+                    $alc['content'] = $row['content'];
+                    $alc['author'] = $row['LOGIN'];
+
+                    $result[] = $alc;
+                }
+                $toReturn = array('result' => R_OK, 'data' => $result);
+                //print_r($toReturn);
+                return $toReturn;
+            } else {
+                return array('result' => 'no_comments');
+            }
+        } else {
+            return array('result' => R_EMPTY);
+        }
     }
 }

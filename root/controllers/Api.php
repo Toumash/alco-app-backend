@@ -41,6 +41,9 @@ function runAPI()
             case 'comment':
                 $result['result'] = $api->commentAlcohol($JSON);
                 break;
+            case 'fetchComments':
+                $result = $api->fetchComments($JSON);
+                break;
             case 'issue':
                 $result['result'] = $api->reportIssue($JSON);
                 break;

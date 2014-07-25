@@ -131,12 +131,12 @@ class AlcoholDisplay
         $this->handleAdding('main_alcohols');
 
         # FETCHING ROWS
-        $zapytanie = "SELECT ID,NAME,PRICE,PERCENT,VOLUME,TYPE,SUBTYPE,DEPOSIT FROM main_alcohols ORDER BY ID ASC";
-        $idzapytania = $this->db->query($zapytanie);
+        $query_string = "SELECT alc.ID,alc.NAME,alc.PRICE,alc.PERCENT,alc.VOLUME,t.name AS TYPE,s.name AS SUBTYPE,alc.DEPOSIT FROM main_alcohols AS alc,alcohol_types AS t,alcohol_subtypes AS s WHERE alc.TYPE= t.id  AND alc.SUBTYPE = s.id  AND alc.TYPE = s.typeID  ORDER BY alc.NAME ASC";
+        $query = $this->db->query($query_string);
         $RESULT = array();
         //mysql_fetch_row - 1,2,3
         //mysql_fetch_assoc - 'lol','xd'
-        while ($row = $idzapytania->fetch_assoc()) {
+        while ($row = $query->fetch_assoc()) {
             //echo '<tr><td>'. $wiersz[0] .'</td><td>'. $wiersz[1] .'</td><td>'. $wiersz[2] .'</td><td>'. $wiersz[3] .'</td></tr>';
             $alc = array();
             $alc['ID'] = $row['ID'];
@@ -236,7 +236,8 @@ class AlcoholDisplay
         $this->handleAdding('user_alcohols');
         $COL = self::$ALC;
 # FETCHING ROWS
-        $query = "SELECT ID,NAME,PRICE,PERCENT,VOLUME,TYPE,SUBTYPE,DEPOSIT FROM user_alcohols ORDER BY ID ASC";
+        $query = "SELECT a.ID,a.NAME,a.PRICE,a.PERCENT,a.VOLUME,t.name AS TYPE,s.name AS SUBTYPE,a.DEPOSIT FROM user_alcohols AS a,alcohol_types AS t,alcohol_subtypes AS s WHERE a.TYPE= t.id  AND a.SUBTYPE = s.id  AND a.TYPE = s.typeID  ORDER BY a.NAME ASC
+";
         $query_result = $this->db->query($query);
 
         $RESULT = array();
