@@ -4,3 +4,5 @@
 <a href="uploads/Alcohol.apk">Pobierz naszą apkę (wersja developerska)</a><br><br>
 <b><a href="?v=g">GALERIA PROJEKTU</a></b>
 <br>
+<h3>Potrzebny nowy design!</h3>
+<br>

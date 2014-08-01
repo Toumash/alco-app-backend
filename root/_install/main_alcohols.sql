@@ -7,7 +7,5 @@ CREATE TABLE `main_alcohols` (
   `VOLUME` int(4) unsigned NOT NULL DEFAULT '0',
   `PERCENT` double unsigned DEFAULT NULL,
   `DEPOSIT` int(1) unsigned NOT NULL DEFAULT '0',
-  `RANK` text,
-  `FLAGS` text NOT NULL COMMENT 'Json przechowywujący flagi,zgłoszenia przez userów',
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=81 DEFAULT CHARSET=utf8

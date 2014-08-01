@@ -1,3 +1,3 @@
 <?php
 
-echo md5($_GET['p']);
+	echo md5($_GET['p']);

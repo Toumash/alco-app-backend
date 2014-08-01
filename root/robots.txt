@@ -1,5 +1,2 @@
 User-agent: *
-Disallow: /panel/
-Disallow: /db/
-Diaallow: /classes/
 Disallow: .htaccess
