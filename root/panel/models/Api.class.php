@@ -251,18 +251,21 @@
 		}
 
 		/**
-		 * @param $input array
+		 * @param $input array ('login'=>string,'password'=>string)
+		 *               to download profile data use $apiObj->profileData array
+		 *
+		 * @return string R_OK,R_LOGIN_PASSWORD
 		 */
 		public function downloadProfile($input)
 		{
 			if ($this->login($input['login'], $input['password']) == 'ok') {
 
-				$login    = $this->db->real_escape_string($input['login']);
-				$password = $this->db->real_escape_string($input['password']);
+				//$login    = $this->db->real_escape_string($input['login']);
+				//	$password = $this->db->real_escape_string($input['password']);
 
-				$md5password = md5(utf8_encode($password));
-				$result      = $this->db->query(
-					"SELECT SEX,WEIGHT,EMAIL FROM users WHERE (LOGIN = '$login' OR EMAIL= '$login') AND PASSWORD = '$md5password'"
+				//$md5password = md5(utf8_encode($password));
+				$result = $this->db->query(
+				"SELECT SEX,WEIGHT,EMAIL,COUNT(alcoholID) as 'rat_count' FROM users,alcohol_ratings WHERE users.ID={$this->profileID} AND alcohol_ratings.userID={$this->profileID}"
 				);
 
 				if ($result->num_rows == 1) {
@@ -283,12 +286,14 @@
 					$profile           = array(
 						'sex'    => $sex,
 						'weight' => $weight,
-						'email'  => $row['EMAIL']
+						'email'     => $row['EMAIL'],
+						'rat_count' => $row['rat_count']
 					);
 					$this->profileData = $profile;
 
 					return R_OK;
 				} else {
+					//not sure if it is necessary but i think it wont change
 					return R_LOGIN_PASSWORD;
 				}
 			} else {
