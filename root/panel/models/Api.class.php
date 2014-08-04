@@ -205,6 +205,15 @@
 			}
 		}
 
+		/**
+		 * @param $input array('title'=>string,
+		 *               ['description'=>string,
+		 *               ['user'=>string,
+		 *               ['priority'=>string,
+		 *               ['kind'=>string]]]])
+		 *
+		 * @return string empty|R_OK|R_ERROR
+		 */
 		public function reportIssue($input)
 		{
 			if (!isset($input['title'])) {
@@ -265,7 +274,7 @@
 
 				//$md5password = md5(utf8_encode($password));
 				$result = $this->db->query(
-				"SELECT SEX,WEIGHT,EMAIL,COUNT(alcoholID) as 'rat_count' FROM users,alcohol_ratings WHERE users.ID={$this->profileID} AND alcohol_ratings.userID={$this->profileID}"
+					"SELECT SEX,WEIGHT,EMAIL,COUNT(alcoholID) as 'rat_count' FROM users,alcohol_ratings WHERE users.ID={$this->profileID} AND alcohol_ratings.userID={$this->profileID}"
 				);
 
 				if ($result->num_rows == 1) {
@@ -291,7 +300,7 @@
 					);
 					$this->profileData = $profile;
 
-					return R_OK;
+					return array('result' => R_OK, 'profile' => $profile);
 				} else {
 					//not sure if it is necessary but i think it wont change
 					return R_LOGIN_PASSWORD;
@@ -366,7 +375,13 @@
 			}
 		}
 
-		public function fetchFlags()
+		/**
+		 * @return array list of all existing flags
+		 *               array('name'=>string,
+		 *               'price'=>0.00,
+		 *               'content'=>string)
+		 */
+		public function fetchAllFlags()
 		{
 			$query_string = "SELECT main_alcohols.NAME,main_alcohols.PRICE,alcohol_flags.content FROM main_alcohols,alcohol_flags WHERE alcohol_flags.alcoholID = main_alcohols.ID";
 			$query        = $this->db->query($query_string);

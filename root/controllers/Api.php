@@ -15,15 +15,6 @@
 	function runAPI()
 	{
 		ob_start();
-		if (isset($_GET['v'])) {
-			switch ($_GET['v']) {
-				case 'imagelist':
-					require_once ROOT . '/panel/models/ImageList.class.php';
-					$list = new ImageList();
-					$list->index();
-					break;
-			}
-		} else {
 			if (($input = file_get_contents("php://input")) != null) {
 				$JSON      = json_decode($input, true);
 				$JSON_dump = $JSON;
@@ -64,8 +55,7 @@
 						$result['result'] = $api->reportIssue($JSON);
 						break;
 					case 'profileDownload':
-						$result['result']  = $api->downloadProfile($JSON);
-						$result['profile'] = $api->profileData;
+						$result = $api->downloadProfile($JSON);
 						break;
 					default :
 						$result['result'] = 'EMPTY_ACTION';
@@ -91,7 +81,6 @@
 					echo '</json>';
 				}
 			}
-		}
 		$output = ob_get_contents();
 		ob_end_clean();
 

@@ -35,6 +35,7 @@
 						?>
 						<li><a href="?v=l" data-v="l" title="Log">Main Log</a></li>
 						<li><a href="?v=lApi" data-v="lApi" title="Log">Api Log</a></li>
+						<li><a href="?v=flags" data-v="flags" title="Flags">Flagi/Raporty</a></li>
 					<?php endif;
 					if ($_SESSION['auth'] == true):
 						?>

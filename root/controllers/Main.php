@@ -50,7 +50,12 @@
 						showPermissionAlert();
 					}
 					break;
-				default:
+				case 'flags':
+					require_once ROOT . '/panel/models/FlagsView.class.php';
+					$flags_view = new FlagsView($db, $permission);
+					$flags_view->index();
+					break;
+					default:
 					require_once(ROOT . '/panel/models/hello.php');
 					break;
 			}

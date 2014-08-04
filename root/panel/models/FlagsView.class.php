@@ -19,10 +19,21 @@
 
 				return;
 			} else {
-				require_once(ROOT . '/panel/models/Api.class.php');
-				$api = new Api($this->db);
-				$api->fetchFlags();
+				echo '<h2>Lista wszystkich flag</h2><br>';
 
+				require_once(ROOT . '/panel/models/Api.class.php');
+				$api   = new Api($this->db);
+				$flags = $api->fetchAllFlags();
+				if ($flags['result'] == R_OK) {
+
+					foreach ($flags['data'] as $flag) {
+						echo $flag['name'] . $flag['price'] . $flag['content'];
+
+					}
+
+				} else {
+					echo 'error fetching flags';
+				}
 
 			}
 
