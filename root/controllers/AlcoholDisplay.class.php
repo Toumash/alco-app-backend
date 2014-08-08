@@ -133,14 +133,12 @@
 		{
 			$this->handleAdding('main_alcohols');
 
-			# FETCHING ROWS
 			$query_string = "SELECT alc.ID,alc.NAME,alc.PRICE,alc.PERCENT,alc.VOLUME,t.name AS TYPE,s.name AS SUBTYPE,alc.DEPOSIT FROM main_alcohols AS alc,alcohol_types AS t,alcohol_subtypes AS s WHERE alc.TYPE= t.id  AND alc.SUBTYPE = s.id  AND alc.TYPE = s.typeID  ORDER BY alc.NAME ASC";
 			$query        = $this->db->query($query_string);
 			$RESULT       = array();
-			//mysql_fetch_row - 1,2,3
-			//mysql_fetch_assoc - 'lol','xd'
+
 			while ($row = $query->fetch_assoc()) {
-				//echo '<tr><td>'. $wiersz[0] .'</td><td>'. $wiersz[1] .'</td><td>'. $wiersz[2] .'</td><td>'. $wiersz[3] .'</td></tr>';
+
 				$alc            = array();
 				$alc['ID']      = $row['ID'];
 				$alc['NAME']    = $row['NAME'];

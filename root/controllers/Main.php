@@ -9,7 +9,7 @@
 		if (isset($view)) {
 			switch ($view) {
 				case 'db':
-					require_once(ROOT . '/panel/models/AlcoholDisplay.class.php');
+					require_once(ROOT . '/controllers/AlcoholDisplay.class.php');
 					$alcoholDisplay = new AlcoholDisplay($db, $permission);
 					$alcoholDisplay->index($action, $id);
 					break;
@@ -24,7 +24,9 @@
 					);
 					break;
 				case 'help':
-					require_once(ROOT . '/panel/models/help.php');
+					require_once(ROOT . '/panel/models/Help.class.php');
+					$helper = new Help();
+					$helper->index();
 					break;
 				case 'g':
 					require_once ROOT . '/panel/models/Gallery.class.php';
@@ -55,7 +57,7 @@
 					$flags_view = new FlagsView($db, $permission);
 					$flags_view->index();
 					break;
-					default:
+				default:
 					require_once(ROOT . '/panel/models/hello.php');
 					break;
 			}

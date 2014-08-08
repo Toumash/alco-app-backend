@@ -16,3 +16,7 @@
 log/
 target/
 alcohol-site.iml
+root/uploads
+root/config
+root/cache
+root/logs

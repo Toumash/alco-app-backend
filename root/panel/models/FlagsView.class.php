@@ -22,7 +22,7 @@
 				echo '<h2>Lista wszystkich flag</h2><br>';
 
 				require_once(ROOT . '/panel/models/Api.class.php');
-				$api   = new Api($this->db);
+				$api   = new Api($this->db, $JSON);
 				$flags = $api->fetchAllFlags();
 				if ($flags['result'] == R_OK) {
 

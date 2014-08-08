@@ -40,9 +40,7 @@
 			array_push($ERRORS, handleLogin($db, $_POST['login'], $_POST['password'], true));
 		}
 	}
-	/**
-	 * END OF LOGIN F
-	 */
+
 
 	require ROOT . "/lib/Rain/autoload.php";
 

@@ -13,7 +13,7 @@
 	class Api
 	{
 		/** @var  array
-		 * Profile data used by download profile. Pull it */
+		 * Profile data used by download profile */
 		public $profileData;
 		/**
 		 * @var int
@@ -23,12 +23,17 @@
 		 * @var Database mysqli
 		 */
 		private $db;
+		/**
+		 * @var string json
+		 */
+		private $input;
 
-		public function __construct($db)
+		public function __construct($db, $input)
 		{
 			$this->db = $db;
 			date_default_timezone_set('Europe/Warsaw');
 
+			$this->input = $input;
 		}
 
 		public function fetchMainDB()
@@ -74,13 +79,14 @@
 		}
 
 
-		public function userUpload($JSON)
+		public function userUpload()
 		{
-			if (handleLogin($this->db, $JSON['login'], $JSON['password'], false) == 'ok') {
-				$alcohols = $JSON['alcohols'];
+			$input = $this->input;
+			if (handleLogin($this->db, $input['login'], $input['password'], false) == 'ok') {
+				$alcohols = $input['alcohols'];
 				##TRANSACTION
 				$this->db->query("BEGIN");
-				$ok = true;
+				$okok = true;
 				//print_r($JSON_a);
 				foreach ($alcohols as $row) {
 					$name    = $this->db->real_escape_string($row['NAME']);
@@ -109,8 +115,9 @@
 			}
 		}
 
-		public function flagAlcohol($input)
+		public function flagAlcohol()
 		{
+			$input = $this->input;
 			if (!empty($input)) {
 				$login = $input['login']; // base64_decode($JSON['login']);
 				if ($this->login($login, $input['password']) == R_OK) {
@@ -206,24 +213,35 @@
 		}
 
 		/**
-		 * @param $input array('title'=>string,
-		 *               ['description'=>string,
-		 *               ['user'=>string,
-		 *               ['priority'=>string,
-		 *               ['kind'=>string]]]])
+		 * @param string $title
+		 * @param string $description
+		 * @param string $user
+		 * @param string $kind
+		 * @param string $priority
 		 *
 		 * @return string empty|R_OK|R_ERROR
 		 */
-		public function reportIssue($input)
-		{
-			if (!isset($input['title'])) {
+		public function reportIssue(
+			$title,
+			$description = 'No description',
+			$user = 'Anonymous',
+			$kind = 'bug',
+			$priority = 'major'
+		) {
+			if (strlen($title) < 1) {
 				return 'empty';
 			} else {
-				$title       = $input['title'];
-				$description = isset($input['description']) ? $input['description'] : 'No description';
-				$user        = isset($input['user']) ? $input['user'] : 'Anonymous';
-				$priority    = isset($input['priority']) ? $input['priority'] : 'major';
-				$kind        = isset($input['kind']) ? $input['kind'] : 'bug';
+				/*				$title       = $input['title'];
+								$description = isset($input['description']) ? $input['description'] : 'No description';
+								$user        = isset($input['user']) ? $input['user'] : 'Anonymous';
+								$priority    = isset($input['priority']) ? $input['priority'] : 'major';
+								$kind        = isset($input['kind']) ? $input['kind'] : 'bug';*/
+
+				$description = strlen($description) > 0 ? $description : 'No description';
+				$user        = strlen($user) > 0 ? $user : 'Anonymous';
+				$kind        = strlen($kind) > 0 ? $kind : 'bug';
+				$priority    = strlen($priority) > 0 ? $priority : 'major';
+
 
 // Config Values:
 				$basicAuth        = 'Q1NCdWdSZXBvcnRlcjphbGNvcmVwb3J0MzIx'; // Base64 encode of: username:password of your Read only user.
@@ -247,13 +265,13 @@
 				if ($status === false) {
 					return R_ERROR;
 				} else {
-					//echo("<span class='bugformsuccess'>Thank you, your bug <b># ".$status['issueid']."</b> has been submitted.</span>");
 					sendBugEmail(
 						$user,
 						$status['issueid'],
 						$companyName,
 						$status['issueurl']
-					); // Leave URL parameter blank if you don't want it in the email.
+					);
+
 					return R_OK;
 				}
 			}
@@ -293,8 +311,8 @@
 						$weight = $row['WEIGHT'];
 					}
 					$profile           = array(
-						'sex'    => $sex,
-						'weight' => $weight,
+						'sex'       => $sex,
+						'weight'    => $weight,
 						'email'     => $row['EMAIL'],
 						'rat_count' => $row['rat_count']
 					);
@@ -325,7 +343,7 @@
 						$id      = $this->db->real_escape_string($input['id']);
 						$content = $this->db->real_escape_string($input['content']);
 						$rate    = $this->db->real_escape_string($input['rate']);
-						//$query = $this->db->query("SELECT ID FROM MAIN_ALCOHOLS WHERE ID='$id' LIMIT 1;");
+
 						$query_exist = $this->db->query(
 							"SELECT EXISTS(SELECT 1 FROM main_alcohols where ID=$id) as exist"
 						);
@@ -341,7 +359,7 @@
 
 							if ($res['exist'] == 1) {
 								global $query_string_insert;
-								$query_string_insert = "UPDATE alcohol_ratings SET content='{$content}',time='{$time}',rate={$rate} where alcoholID ={$id} and userID={$this->profileID}";
+								$query_string_insert = "UPDATE alcohol_ratings SET content='{$content}',time='{$time}',rate={$rate} where alcoholID ={$id} and userID={$this->profileID} LIMIT 1";
 							} else {
 								global $query_string_insert;
 								$query_string_insert = "INSERT INTO alcohol_ratings(alcoholID,userID,content,time,rate) VALUES ($id,{$this->profileID},'{$content}','{$time}',{$rate})";
@@ -437,6 +455,26 @@
 				}
 			} else {
 				return array('result' => R_EMPTY);
+			}
+		}
+
+		/**
+		 * @param $id string 36 chars
+		 *
+		 * @return string
+		 */
+		public function registerInstallation($id)
+		{
+			$id_clean = $this->db->real_escape_string($id);
+			$date     = date("Y.m.d");
+			$query    = "INSERT INTO app_installs(id,date) VALUES ('{$id_clean}','{$date}')";
+			$result   = $this->db->query($query);
+			if ($result == true) {
+				return R_OK;
+			} else {
+				Log::d("LOL DB ERROR:" . mysqli_error($this->db));
+
+				return R_ERROR;
 			}
 		}
 	}
