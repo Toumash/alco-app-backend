@@ -142,11 +142,14 @@
 							$time                = date("Y.m.d H:i:s");
 							$query_string_insert = "INSERT INTO alcohol_flags(alcoholID,userID,content,time) VALUES ($id,{$this->profileID},'{$content}','{$time}')";
 							$insert_result       = $this->db->query($query_string_insert);
-							Log::d(mysqli_error($this->db));
-							Log::d($query_string_insert);
+
 							if ($insert_result == true) {
 								return R_OK;
 							} else {
+								Log::d(
+									'FLAG ALCOHOL ERROR:: ' . mysqli_error($this->db) . '++++' . $query_string_insert
+								);
+
 								return R_ERROR;
 							}
 							//print_r($data);
@@ -188,7 +191,6 @@
 					"SELECT PERMISSIONS,ACTIVATION,ID FROM users WHERE (LOGIN = '$login' OR EMAIL= '$login') AND PASSWORD = '$md5password'"
 				);
 
-				Log::d(mysqli_error($this->db));
 				if ($result->num_rows == 1) {
 					$row = $result->fetch_assoc();
 					if (strlen($row['ACTIVATION']) < 2) {
@@ -472,8 +474,6 @@
 			if ($result == true) {
 				return R_OK;
 			} else {
-				Log::d("LOL DB ERROR:" . mysqli_error($this->db));
-
 				return R_ERROR;
 			}
 		}
