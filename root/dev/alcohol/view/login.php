@@ -26,9 +26,10 @@
 		 */
 		public function login($login_result)
 		{
-
 			$this->tpl->assign('title', 'Trwa logowanie...');
 			$this->tpl->assign('result', $login_result ? 'OK, Zalogowano pomyślnie' : 'Błąd');
+
+			header("Refresh: 3; URL = /alcohol/articles/");
 			$this->tpl->draw('login');
 		}
 		/*		public function  add() {

@@ -15,11 +15,8 @@
 		{
 			try {
 				$config_file = '';
-				if ($_SERVER['SERVER_NAME'] == '192.168.0.111' || $_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['HTTP_HOST'] == 'localhost:8080') {
-					$config_file = R . '/config/config_local.ini';
-				} else {
-					$config_file = R . '/config/config.ini';
-				}
+				$config_file = R . '/config/config.ini';
+
 				$config    = parse_ini_file($config_file, true);
 				$server    = $config['db']['server'];
 				$login     = $config['db']['login'];
@@ -44,6 +41,7 @@
 			$name = $name . 'Model';
 			try {
 				if (is_file($path)) {
+					/** @noinspection PhpIncludeInspection */
 					require $path;
 					$ob = new $name();
 				} else {

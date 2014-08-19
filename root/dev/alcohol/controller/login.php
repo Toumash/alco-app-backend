@@ -3,26 +3,24 @@
 
 	class LoginController extends Controller
 	{
+		public function __construct()
+		{
+			parent::__construct();
+		}
+
 		public function index()
 		{
 			$view = $this->loadView('login');
-			$view->index();
+			if ($_SESSION['auth'] == true) {
+				$this->redirectLocal('/a');
+			} else {
+				$view->index();
+			}
 		}
 
 		public function login()
 		{
-
-			if (isset($_GET['logout'])) {
-				session_destroy();
-				unset($_SESSION);
-			}
-
-			if (!isset($_SESSION['auth'])) {
-				$_SESSION['auth']       = false;
-				$_SESSION['permission'] = 1;
-			}
-			$result = null;
-
+			$result = false;
 			if (isset($_POST['login']) && isset($_POST['password'])) {
 				$model = $this->loadModel('login');
 				global $result;
@@ -32,24 +30,22 @@
 			if ($result == false) {
 				$view->login(false);
 			} else {
-				$_SESSION['id']         = $result['ID'];
-				$_SESSION['permission'] = $result['PERMISSIONS'];
-				$_SESSION['auth']       = true;
-				$view->login(true);
+				if ($result == true) {
+					$_SESSION['id']         = $result['ID'];
+					$_SESSION['permission'] = $result['PERMISSIONS'];
+					$_SESSION['auth']       = true;
+
+					$view->login(true);
+				}
 			}
-
-
 		}
 
 		public function logout()
 		{ /*
 			$model = $this->loadModel('login');
 			$model->insert($_POST);*/
-			$this->redirect('login/logout/');
-		}
-
-		public function register()
-		{
-
+			session_destroy();
+			unset($_SESSION);
+			$this->redirectLocal('/login');
 		}
 	}

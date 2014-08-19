@@ -14,7 +14,7 @@
 
 			$config = array(
 				//"tpl_dir"   => "views/default/",
-				"cache_dir" => "cache/",
+				"cache_dir" => R . "/cache/",
 				"debug"     => false, // set to false to improve the speed
 			);
 
@@ -25,7 +25,7 @@
 			$this->tpl = new Rain\Tpl();
 
 			Rain\Tpl::configure("auto_escape", false);
-			//Tpl::configure("php_enabled", true );
+			Rain\Tpl::configure("php_enabled", true);
 		}
 
 		/**
@@ -84,28 +84,15 @@
 			}
 		}
 
-		/**
-		 * It sets data.
-		 *
-		 * @param string $name
-		 * @param mixed  $value
-		 *
-		 * @return void
-		 */
 		public function set($name, $value)
 		{
 			$this->$name = $value;
 		}
 
-		/**
-		 * It gets data.
-		 *
-		 * @param string $name
-		 *
-		 * @return mixed
-		 */
 		public function get($name)
 		{
 			return $this->$name;
 		}
+
+		abstract function index();
 	}

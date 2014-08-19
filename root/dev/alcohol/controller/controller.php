@@ -5,6 +5,14 @@
 
 		public $request;
 
+		public function __construct()
+		{
+			if (!isset($_SESSION['auth'])) {
+				$_SESSION['auth']       = false;
+				$_SESSION['permission'] = 1;
+			}
+		}
+
 		/**
 		 * It redirects URL.
 		 *
@@ -15,6 +23,19 @@
 		public function redirect($url)
 		{
 			header("location: " . $url);
+		}
+
+
+		/**
+		 * It redirects to local alcohol project URL.
+		 *
+		 * @param string $url URL to redirect
+		 *
+		 * @return void
+		 */
+		public function redirectLocal($url)
+		{
+			header("location: " . '/alcohol' . $url);
 		}
 
 		/**
@@ -79,23 +100,32 @@
 
 		public function action($request)
 		{
-			array_shift($request);
-			if (isset($request[0])) {
-				$action = $request[0];
-				//Deletes all trash and saves the parameters for use in next controller actions
+			try {
+
 				array_shift($request);
-				$this->request = $request;
-				//Uses the method or goes to the index
-				if ($action != 'action' && $action != 'loadModel' && $action != 'loadView' && method_exists(
-						$this,
-						$action
-					)
-				) {
-					$this->$action();
+				if (!empty($request)) {
+					$action = $request[0];
+					if (count($request) > 1) {
+						array_shift($request);
+					}
+					//Deletes all trash and saves the parameters for use in next controller actions
+					$this->request = $request;
+					//Uses the method or goes to the index
+					if ($action != 'action' && $action != 'loadModel' && $action != 'loadView' && method_exists(
+							$this,
+							$action
+						)
+					) {
+						$this->$action();
+					} else {
+						$this->index();
+					}
+
 				} else {
 					$this->index();
 				}
-
+			} catch (Exception $e) {
+				echo $e->getMessage() . '<br/>' . $e->getTraceAsString();
 			}
 		}
 

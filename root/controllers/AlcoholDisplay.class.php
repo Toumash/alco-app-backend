@@ -259,9 +259,6 @@
 			$query_result = $this->db->query($query);
 
 			$RESULT = array();
-			//mysql_fetch_row - 1,2,3
-			//mysql_fetch_assoc - 'lol','xd'
-
 			while ($row = $query_result->fetch_assoc()) {
 				$alc            = array();
 				$alc['ID']      = $row['ID'];

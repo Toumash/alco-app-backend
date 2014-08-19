@@ -35,7 +35,7 @@
 			$result         = array();
 			$JSON['action'] = isset($JSON['action']) ? $JSON['action'] : "";
 			if (isset($JSON['api_token'])) {
-				$api_token   = $JSON['api_token'];
+				$api_token = base64_decode(base64_decode($JSON['api_token']));
 				$token_query = $db->query(
 					"SELECT EXISTS(SELECT 1 FROM api_tokens where token='{$api_token}') as exist"
 				);
@@ -82,6 +82,9 @@
 							break;
 						case 'reg_installation':
 							$result['result'] = $api->registerInstallation($JSON['id']);
+							break;
+						case 'update':
+							$result = $api->checkUpdate($JSON);
 							break;
 						default :
 							$result['result'] = 'EMPTY_ACTION';

@@ -20,3 +20,7 @@ root/uploads
 root/config
 root/cache
 root/logs
+
+
+root/dev/alcohol/config
+root/dev/alcohol/cache

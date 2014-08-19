@@ -5,7 +5,7 @@ CREATE TABLE `main_alcohols` (
   `SUBTYPE` int(3) unsigned NOT NULL DEFAULT '1',
   `PRICE` double unsigned DEFAULT NULL,
   `VOLUME` int(4) unsigned NOT NULL DEFAULT '0',
-  `PERCENT` double unsigned DEFAULT NULL,
+  `PERCENT` decimal(5,2) unsigned DEFAULT NULL,
   `DEPOSIT` int(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=81 DEFAULT CHARSET=utf8
+) ENGINE=InnoDB AUTO_INCREMENT=87 DEFAULT CHARSET=utf8

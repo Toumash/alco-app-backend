@@ -127,7 +127,7 @@
 						$content = $input['content'];
 						//$query = $this->db->query("SELECT ID FROM MAIN_ALCOHOLS WHERE ID='$id' LIMIT 1;");
 						$query_exist = $this->db->query(
-							"SELECT EXISTS(SELECT 1 FROM main_alcohols where ID=$id) as exist"
+							"SELECT EXISTS(SELECT 1 FROM main_alcohols where ID=$id LIMIT 1) as exist LIMIT 1"
 						);
 						print_r(mysqli_error($this->db));
 						$result = $query_exist->fetch_assoc();
@@ -458,6 +458,29 @@
 			} else {
 				return array('result' => R_EMPTY);
 			}
+		}
+
+		public function checkUpdate($JSON)
+		{
+			$file = file_get_contents(ROOT . '/version.json');
+			$json = json_decode($file, true);
+
+			/*			$id = $this->db->real_escape_string($JSON['id']);
+						$result  = $this->updateUserAppUpdates($id);
+						if($result==false)
+							Log::d('update update check mysql error'.mysqli_error($this->db));
+						if ($this->db->affected_rows == 0) {
+							if($this->registerInstallation($id)!=R_OK)
+							Log::d('update insert check mysql error'.mysqli_error($this->db));
+						}*/
+
+			return $json;
+
+		}
+
+		public function updateUserAppUpdates($id)
+		{
+			return $this->db->query("UPDATE app_installs SET updates=updates+1 WHERE id='{$id}'");
 		}
 
 		/**

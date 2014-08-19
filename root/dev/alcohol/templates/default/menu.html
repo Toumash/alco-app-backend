@@ -1,0 +1,21 @@
+<ul>
+    <li><a href="/alcohol/a" title="Strona główna">Strona główna</a></li>
+    <?php if ($_SESSION['permission'] == 0): ?>
+    <li><a href="/register" title="Rejestracja">Rejestracja</a></li>
+    <?php endif; ?>
+    <li><a href="/alcohol/a/help" title="Pomoc">Pomoc</a></li>
+    <li><a href="/alcohol/a/gallery" title="Galeria">Galeria</a></li>
+    <?php if ($_SESSION['permission'] >= 5): ?>
+    <li><a href="/alcohol/database" title="DB">Bazy Danych</a></li>
+    <?php endif;
+					if ($_SESSION['permission'] >= 6):
+    ?>
+    <li><a href="/alcohol/a/log" title="Log">Main Log</a></li>
+    <li><a href="/alcohol/a/lopApi" title="Log">Api Log</a></li>
+    <li><a href="/alcohol/flags" title="Flags">Flagi/Raporty</a></li>
+    <?php endif;
+					if ($_SESSION['auth'] == true):
+	?>
+    <li><a href="/alcohol/login/logout" title="Wyloguj">Wyloguj</a></li>
+    <?php endif; ?>
+</ul>
