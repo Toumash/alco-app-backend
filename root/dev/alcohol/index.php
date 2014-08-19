@@ -66,7 +66,7 @@
 				$ob = new ApiController();
 				$ob->action($args);
 				break;
-				default:
+			default:
 				header('HTTP/1.1 404 Not Found');
 				echo '404';
 

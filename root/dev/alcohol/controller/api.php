@@ -44,14 +44,13 @@
 		}
 
 		/**
-		 * @param $view   View
+		 * @param $view View
 		 * @param $action string
 		 */
 		private function displayEmptyRQ($view, $action)
 		{
 			$view->index(array('result' => 'emptyRQ'), $action);
 		}
-
 		public function getJSONData()
 		{
 			if (($input = file_get_contents("php://input")) != null) {

@@ -12,7 +12,6 @@
 				$_SESSION['permission'] = 1;
 			}
 		}
-
 		/**
 		 * It redirects URL.
 		 *
@@ -37,7 +36,6 @@
 		{
 			header("location: " . '/alcohol' . $url);
 		}
-
 		/**
 		 * It loads the object with the view.
 		 *
@@ -105,9 +103,7 @@
 				array_shift($request);
 				if (!empty($request)) {
 					$action = $request[0];
-					if (count($request) > 1) {
-						array_shift($request);
-					}
+					if (count($request) > 1) array_shift($request);
 					//Deletes all trash and saves the parameters for use in next controller actions
 					$this->request = $request;
 					//Uses the method or goes to the index
@@ -118,8 +114,8 @@
 					) {
 						$this->$action();
 					} else {
-						$this->index();
-					}
+					$this->index();
+				}
 
 				} else {
 					$this->index();
