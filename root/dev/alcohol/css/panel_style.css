@@ -5,14 +5,15 @@ body > .container {
     min-height: 40em;
     border: #a5c72d solid 10px;
     margin: auto auto 4em;
-    background-image: url('images/background-content_min.jpg');
+    background-image: url('/alcohol/images/background-content_min.jpg');
 }
 
 .header {
     color: #DDDDDD;
     max-width: 1260px;
     height: 200px;
-    background: url('images/header.png') no-repeat center;
+    /*noinspection CssUnknownTarget*/
+    background: url('/alcohol/images/header.png') no-repeat center;
 }
 
 #header_back {
@@ -21,7 +22,8 @@ body > .container {
 }
 
 body {
-    background-image: url('images/background-body_min.jpg');
+    /*noinspection CssUnknownTarget*/
+    background-image: url('/alcohol/images/background-body_min.jpg');
     font-size: 100%;
     font-family: "Trebuchet MS", Helvetica, sans-serif;
 }
@@ -136,7 +138,8 @@ input.holo[type='text']:hover, input.holo[type='password']:hover, input.holo[typ
 .footer {
     height: 3em;
     color: #DDDDDD;
-    background-image: url('images/background-content_min.jpg');
+    /*noinspection CssUnknownTarget*/
+    background-image: url('/alcohol/images/background-content_min.jpg');
     border-top: 2px double #AEC94F;
     text-align: right;
     font-size: 0.76em;
