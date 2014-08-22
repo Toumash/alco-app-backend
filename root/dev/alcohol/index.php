@@ -5,6 +5,8 @@
 	ini_set('display_startup_errors', 1);
 	ini_set('display_errors', 1);
 	error_reporting(E_ALL | E_STRICT);
+
+	require_once 'app/ControllerLoader.php';
 	session_start();
 	/*	if ($_GET['module'] == 'categories') {
 			require R . '/controller/categories.php';
@@ -47,7 +49,7 @@
 			$name = $args[0];
 			$file = R . '/controller/' . $name . '.php';
 			if (is_file($file)) {
-				$controller = COntrollerLoader::loadController($name);
+				$controller = ControllerLoader::loadController($name);
 				$controller->action($args);
 			} else {
 				$controller = ControllerLoader::loadController('articles');
@@ -100,42 +102,5 @@
 
 	}
 
-	class ControllerLoader
-	{
-		/**
-		 * It loads the object with the controller.
-		 *
-		 * @param string $name name class with the class
-		 * @param string $path pathway to the file with the class
-		 *
-		 * @return object
-		 */
-		public static function loadController($name, $path = null)
-		{
-			if ($path == null) {
-				$path = R . '/controller/';
-			}
-			$path = $path . $name . '.php';
-			$name = $name . 'Controller';
-			$name = ucfirst($name);
-			try {
-				if (is_file($path)) {
-					/** @noinspection PhpIncludeInspection */
-					require_once $path;
-					$ob = new $name();
-				} else {
-					throw new Exception('Can not open controller ' . $name . ' in: ' . $path);
-				}
-			} catch (Exception $e) {
-				echo $e->getMessage() . '<br />
-                File: ' . $e->getFile() . '<br />
-                Code line: ' . $e->getLine() . '<br />
-                Trace: ' . $e->getTraceAsString();
-				exit;
-			}
 
-			return $ob;
-		}
-
-	}
 
