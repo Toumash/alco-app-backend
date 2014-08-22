@@ -1,0 +1,61 @@
+<h1>
+    Główna baza danych
+</h1>
+{loop="$alcohols"}
+{/loop}
+
+
+<table class="alcohols-table">
+    <thead>
+    <tr>
+    <th>id</th>
+    <th>Nazwa</th>
+    <th>Cena</th>
+    <th>Procent</th>
+    <th>Objętość</th>
+    <th>Typ</th>
+    <th>Podtyp</th>
+    <th>Kaucja</th>
+    {if="$lvl>=$lvl_delete"}
+    <th>Usuń</th>
+    {/if}
+    </thead>
+
+    {loop="$alcohols"}
+
+    <tr>
+        <td data-th="ID">#{$value->id}</td>
+        <td data-th="Nazwa">{$value->name}</td>
+        <td data-th="Cena">{$value->price} zł</td>
+        <td data-th="Procent">{$value->percent} %</td>
+        <td data-th="Objętość">{$value->volume} ml</td>
+        <td data-th="Typ">{$value->typeString}</td>
+        <td data-th="Podtyp">{$value->subtypeString}</td>
+        <td data-th="Kaucja">{$value->deposit}</td>
+
+        {if="$lvl>=$lvl_delete"}
+        <td data-th="Usuń">
+            <a class="delete" href="/alcohol/maindb/delete/{$value->id}">[ X ]</a>
+        </td>
+        {/if}
+    </tr>
+
+    {/loop}
+
+    {if="$lvl>=$lvl_add"}
+    <tr>
+        <form method="POST" action="/alcohol/maindb/add">
+            <td data-th="ID">#auto</td>
+            <td data-th="Nazwa"><input type="text" name="NAME" class="add-name"/></td>
+            <td data-th="Cena"><input type="text" name="PRICE" class="add-int"/></td>
+            <td data-th="Procent"><input type="text" name="PERCENT" class="add-int"/></td>
+            <td data-th="Objętość"><input type="text" name="VOLUME" class="add-int"/></td>
+            <td data-th="Typ"><input type="text" name="TYPE" class="add-type"/></td>
+            <td data-th="Podtyp"><input type="text" name="SUBTYPE" class="add-int"/></td>
+            <td data-th="Kaucja"><input type="checkbox" name="DEPOSIT" class="add-int"/></td>
+            <td data-th="Akceptuj"><input type="submit" value="OK"/></td>
+            <input type="hidden" name="action" value="i"/>
+        </form>
+    </tr>
+    {/if}
+</table>
