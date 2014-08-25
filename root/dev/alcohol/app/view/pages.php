@@ -6,6 +6,7 @@
 		public function __construct()
 		{
 			parent::__construct();
+			/** @noinspection PhpUndefinedClassInspection */
 			Rain\Tpl::configure('tpl_dir', R . '/templates/default/');
 		}
 
@@ -23,15 +24,6 @@
 				$this->tpl->draw('default');
 			} else {
 				$this->serveNotFound();
-				/*
-					$default = R.'/pages/'.'hello'.'.html.php';
-					ob_start();
-					require $default;
-					$content = ob_get_clean();
-					ob_end_clean();
-					$this->tpl->assign('content',$content);
-					$this->tpl->assign('title_main','Alcohol App');
-					$this->tpl->draw('default');*/
 			}
 		}
 

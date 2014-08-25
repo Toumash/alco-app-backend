@@ -51,8 +51,8 @@
 		 */
 		public function loadModel($name, $path = null)
 		{
-			if($path==null){
-				$path = R.'/model/';
+			if ($path == null) {
+				$path = R . '/model/';
 			}
 			$path = $path . $name . '.php';
 			$name = $name . 'Model';
@@ -86,8 +86,8 @@
 		 */
 		public function render($name, $path = null)
 		{
-			if($path == null){
-				$path = R.'/templates/';
+			if ($path == null) {
+				$path = R . '/templates/';
 			}
 			$path = $path . $name . '.html.php';
 			try {

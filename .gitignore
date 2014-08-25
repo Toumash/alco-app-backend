@@ -22,5 +22,5 @@ root/cache
 root/logs
 
 
-root/dev/alcohol/config
-root/dev/alcohol/cache
+root/dev/alcohol/app/config
+root/dev/alcohol/app/cache

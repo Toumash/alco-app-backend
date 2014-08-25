@@ -1,5 +1,6 @@
 <?php
 	require_once R . '/controller/controller.php';
+
 	define('R_LOGIN_PASSWORD', 'login_password');
 	define('R_ERROR', 'error');
 	define('R_OK', 'ok');
@@ -16,15 +17,17 @@
 			} else {
 
 				$result = false;
-				if (isset($data['login']) && isset($data['password'])) {
+				if (isset($data['login']) && isset($data['password']) && isset($data['install_id'])) {
+
+					/** @var $model LoginModel */
 					$model  = $this->loadModel('login');
-					$result = $model->login($data['login'], $data['password']);
+					$result = $model->loginForApp($data['login'], $data['password'], $data['install_id']);
 				}
 				if ($result == false) {
 					$view->index(array('result' => 'error'), 'login');
 				} else {
-					if ($result == true) {
-						$view->index(array('result' => 'ok'), 'login');
+					if (is_array($result)) {
+						$view->index(array('result' => 'ok', 'session_token' => $result['session_token']), 'login');
 					}
 				}
 			}
@@ -40,6 +43,10 @@
 			return $view;
 		}
 
+		/**
+		 * Pulls the JSON from the POST payload
+		 * @return mixed|bool mixed is a JSON array(php array), returns bool false is theres no data
+		 */
 		public function getJSONData()
 		{
 			if (($input = file_get_contents("php://input")) != null) {
@@ -92,7 +99,10 @@
 							/** @var $model MainalcModel */
 							$model = $this->loadModel('useralc');
 
-							$view->index(array('result' => $model->insertSerial($model->JSONToAlcohols($alcohols), $id)), 'upload');
+							$view->index(
+								array('result' => $model->insertSerial($model->JSONToAlcohols($alcohols), $id)),
+								'upload'
+							);
 
 						} else {
 							$this->index(array('result' => R_EMPTY), 'upload');
@@ -106,6 +116,13 @@
 			}
 		}
 
+		/**
+		 * @param $login
+		 * @param $password
+		 *
+		 * @see LoginModel
+		 * @return bool|int|string false if login or password wrong. Int - userID, but string when the activation is not performed yet
+		 */
 		private function fastLogin($login, $password)
 		{
 			/** @var $model LoginModel */
@@ -119,5 +136,19 @@
 		{
 			$view = $this->getJSONView();
 			$this->displayEmptyRQ($view, '');
+		}
+
+		private function requireSessionLogged($session_token)
+		{
+			/** @var $model LoginModel */
+			$model  = $this->loadModel('login');
+			$result = $model->requireSessionLogged($session_token);
+
+			if ($result == false) {
+
+				/** @var $view JsonView */
+				$view = $this->loadView('json');
+				$view->index(array('result' => 'void_session'), 'login');
+			}
 		}
 	}

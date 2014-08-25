@@ -50,14 +50,17 @@
 			$file = R . '/controller/' . $name . '.php';
 			if (is_file($file)) {
 				$controller = ControllerLoader::loadController($name);
-				$controller->action($args);
+				$controller->execAction($args);
 			} else {
+				/** @var $controller ArticlesController */
 				$controller = ControllerLoader::loadController('articles');
-				$controller->action($args);
+				$controller->execAction($args);
 			}
 		} else {
+
+			/** @var $controller ArticlesController */
 			$controller = ControllerLoader::loadController('articles');
-			$controller->action($args);
+			$controller->execAction($args);
 		}
 		/*		switch ($args[0]) {
 					case 'login':

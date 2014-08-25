@@ -14,6 +14,7 @@
 		{
 			$this->redirectLocal('/maindb/');
 		}
+
 		public function user()
 		{
 			$this->redirectLocal('/userdb/');

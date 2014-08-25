@@ -7,7 +7,7 @@
 		public function __construct()
 		{
 			parent::__construct();
-			Rain\Tpl::configure('tpl_dir', R.'/templates/default/');
+			Rain\Tpl::configure('tpl_dir', R . '/templates/default/');
 
 		}
 

@@ -1,12 +1,14 @@
 <?php
 	require_once R . '/model/model.php';
-	require_once R.'/model/contracts/Alcohol.php';
+	require_once R . '/model/contracts/Alcohol.php';
 
 	class UseralcModel extends Model
 	{
 		/**
 		 * @param $alcohols Alcohol[]
+		 *
 		 * @see Alcohol
+		 *
 		 * @param $userID
 		 *
 		 * @return string R_OK|R_ERROR
@@ -40,6 +42,7 @@
 					$this->loadModel('log');
 					LogModel::d($e->getMessage(), LogModel::$API_LOG);
 				}
+
 				return R_ERROR;
 			}
 
@@ -50,7 +53,7 @@
 		 */
 		public function fetchAll()
 		{
-			$query    = $this->pdo->query("SELECT * FROM user_alcohols LIMIT 2000");
+			$query = $this->pdo->query("SELECT * FROM user_alcohols LIMIT 2000");
 			$array = array();
 			while ($row = $query->fetch()) {
 				$alc = new Alcohol($row['NAME'], $row['PRICE'], $row['TYPE'], $row['SUBTYPE'], $row['VOLUME'], $row['PERCENT'], $row['DEPOSIT']);
@@ -67,7 +70,9 @@
 		 */
 		public function fetchAllWithTypes()
 		{
-			$query    = $this->pdo->query("SELECT u.ID,u.NAME,u.PRICE,u.VOLUME,u.PERCENT,u.DEPOSIT,t.name as type,s.name as subtype FROM user_alcohols as u,alcohol_types as t,alcohol_subtypes as s WHERE u.TYPE= t.id  AND u.SUBTYPE = s.id  AND u.TYPE = s.typeID  ORDER BY u.NAME ASC LIMIT 2000");
+			$query = $this->pdo->query(
+				"SELECT u.ID,u.NAME,u.PRICE,u.VOLUME,u.PERCENT,u.DEPOSIT,t.name as type,s.name as subtype FROM user_alcohols as u,alcohol_types as t,alcohol_subtypes as s WHERE u.TYPE= t.id  AND u.SUBTYPE = s.id  AND u.TYPE = s.typeID  ORDER BY u.NAME ASC LIMIT 2000"
+			);
 			$array = array();
 			while ($row = $query->fetch()) {
 				$alc = new Alcohol($row['NAME'], $row['PRICE'], $row['type'], $row['subtype'], $row['VOLUME'], $row['PERCENT'], $row['DEPOSIT']);
@@ -90,18 +95,22 @@
 
 			return $count;
 		}
+
 		/**
 		 * @param $array array
+		 *
 		 * @return Alcohol[]
 		 */
 		public function JSONToAlcohols($array)
 		{
 			$alcohols = array();
 			foreach ($array as $row) {
-				$alcohols[] = new Alcohol($row['NAME'],$row['PRICE'],$row['TYPE'],$row['SUBTYPE'],$row['VOLUME'],$row['PERCENT'],$row['DEPOSIT']);
+				$alcohols[] = new Alcohol($row['NAME'], $row['PRICE'], $row['TYPE'], $row['SUBTYPE'], $row['VOLUME'], $row['PERCENT'], $row['DEPOSIT']);
 			}
+
 			return $alcohols;
 		}
+
 		/**
 		 * @param $id int id from db to delete
 		 *

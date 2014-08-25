@@ -1,13 +1,14 @@
 <?php
 
 	define('LVL_VIEW_MAIN', 1);
-	define('LVL_MAIN_DELETE',4);
-	define('LVL_MAIN_ADD',4);
+	define('LVL_MAIN_DELETE', 4);
+	define('LVL_MAIN_ADD', 4);
 
 	abstract class Controller
 	{
 
 		public $request;
+		public $action;
 
 		public function __construct()
 		{
@@ -28,7 +29,6 @@
 		{
 			header("location: " . $url);
 		}
-
 
 		/**
 		 * It redirects to local alcohol project URL.
@@ -51,10 +51,9 @@
 		 * @return object
 		 */
 		public function loadModel($name, $path = null)
-
 		{
-			if($path == null){
-				$path= R.'/model/';
+			if ($path == null) {
+				$path = R . '/model/';
 			}
 			$path = $path . $name . '.php';
 			$name = $name . 'Model';
@@ -77,16 +76,18 @@
 			return $ob;
 		}
 
-		public function action($request)
+		public function execAction($request)
 		{
 			try {
 
 				array_shift($request);
 				if (!empty($request)) {
-					$action = $request[0];
+					$action       = $request[0];
+					$this->action = $action;
+
 					if (count($request) > 1) {
 						array_shift($request);
-					}else{
+					} else {
 						$request = array();
 					}
 					//Deletes all trash and saves the parameters for use in next controller actions
@@ -134,8 +135,8 @@
 		 */
 		public function loadView($name, $path = null)
 		{
-			if($path==null){
-				$path=R.'/view/';
+			if ($path == null) {
+				$path = R . '/view/';
 			}
 			$path = $path . $name . '.php';
 			$name = $name . 'View';

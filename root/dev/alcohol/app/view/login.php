@@ -7,7 +7,7 @@
 		public function __construct()
 		{
 			parent::__construct();
-			Rain\Tpl::configure('tpl_dir', R.'/templates/default/');
+			Rain\Tpl::configure('tpl_dir', R . '/templates/default/');
 
 		}
 
@@ -27,12 +27,14 @@
 		public function success($login_result)
 		{
 			$this->tpl->assign('title', 'Trwa logowanie...');
-			if($login_result==false){
-			$this->tpl->assign('result', 'Błąd');
+			if ($login_result == false) {
+				$this->tpl->assign('result', 'Błąd');
 				$this->tpl->draw('login');
-			}else if($login_result==true){
-			header("Refresh: 3; URL = /alcohol/articles/");
-			$this->tpl->draw('loginRedirect');
+			} else {
+				if ($login_result == true) {
+					header("Refresh: 3; URL = /alcohol/articles/");
+					$this->tpl->draw('loginRedirect');
+				}
 			}
 		}
 		/*		public function  add() {
