@@ -1,4 +1,4 @@
 {
-    "version": 7,
-    "info": " +wykorzystanie api issue trackera bitbucketa\n +przyjemna aktywnosc do publikowania bugów\n +swipe do moich propozycji\n +okno informacji o alkoholu\n +naprawiony edytor\n +actionBar dla starszych urządzeń (potrzebny feedback)"
+    "version": 12,
+    "info": "->0.0.7.140817\n+nowe API\n+refactoring \n+prostota kodu\n"
 }

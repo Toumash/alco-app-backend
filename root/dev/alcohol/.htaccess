@@ -1,0 +1,9 @@
+RewriteEngine On
+RewriteBase /
+FallbackResource /alcohol/index.php
+#IndexIgnore *
+
+<Files ~ "\.ini$">
+Order allow,deny
+Deny from all
+</Files>

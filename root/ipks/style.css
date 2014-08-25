@@ -1,0 +1,10 @@
+body {
+    background-image: url('images/background.gif');
+}
+
+h1 {
+    color: black;
+    font-size: 50pt;
+    font-weight: bolder;
+    background-color: deeppink;
+}

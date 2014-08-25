@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="shortcut icon" href="/alcohol/images/favicon.ico">
+    <link rel="icon" href="/alcohol/images/favicon.ico">
+    <link rel="favicon" href="/alcohol/images/favicon.ico" type="image/vnd.microsoft.icon">
+    <link rel="stylesheet" type="text/css" href="/alcohol/css/default.css">
+    <script async src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <!--    <script type="text/javascript" async src="../jQuery.js"></script>-->
+    <!--<script type="text/javascript" src="rmvAds.js"></script>-->
+    <title>{$title_main}</title>
+</head>
+<body>
+<div class="container">
+    <div id="header_back">
+        <div class="header">
+        </div>
+    </div>
+    <div class="menu-main">
+        {include="c_menu"}
+    </div>
+    {if="isset($LOGIN_FORM)"}
+    {$LOGIN_FORM}
+    {/if}
+    <div class="content-wrapper">
+        <div class="content">
+            {if="isset($ERRORS)"}
+            <div class="messages-error">
+                {loop="$ERRORS"}
+                {$value} <br/>
+                {/loop}
+            </div>
+            {/if}
+
+            {if="isset($INFO)"}
+            <div class="messages-info">
+                {loop="$INFO"}
+                {$value} <br/>
+                {/loop}
+            </div>
+            {/if}
+            {$content}
+        </div>
+    </div>
+    <div class="footer">
+        {if="isset($FOOTER)"}
+        {$FOOTER}
+        {/if}
+    </div>
+</div>
+</body>
+</html>

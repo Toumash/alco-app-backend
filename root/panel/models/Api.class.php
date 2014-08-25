@@ -127,7 +127,7 @@
 						$content = $input['content'];
 						//$query = $this->db->query("SELECT ID FROM MAIN_ALCOHOLS WHERE ID='$id' LIMIT 1;");
 						$query_exist = $this->db->query(
-							"SELECT EXISTS(SELECT 1 FROM main_alcohols where ID=$id) as exist"
+							"SELECT EXISTS(SELECT 1 FROM main_alcohols where ID=$id LIMIT 1) as exist LIMIT 1"
 						);
 						print_r(mysqli_error($this->db));
 						$result = $query_exist->fetch_assoc();
@@ -142,11 +142,14 @@
 							$time                = date("Y.m.d H:i:s");
 							$query_string_insert = "INSERT INTO alcohol_flags(alcoholID,userID,content,time) VALUES ($id,{$this->profileID},'{$content}','{$time}')";
 							$insert_result       = $this->db->query($query_string_insert);
-							Log::d(mysqli_error($this->db));
-							Log::d($query_string_insert);
+
 							if ($insert_result == true) {
 								return R_OK;
 							} else {
+								Log::d(
+									'FLAG ALCOHOL ERROR:: ' . mysqli_error($this->db) . '++++' . $query_string_insert
+								);
+
 								return R_ERROR;
 							}
 							//print_r($data);
@@ -188,7 +191,6 @@
 					"SELECT PERMISSIONS,ACTIVATION,ID FROM users WHERE (LOGIN = '$login' OR EMAIL= '$login') AND PASSWORD = '$md5password'"
 				);
 
-				Log::d(mysqli_error($this->db));
 				if ($result->num_rows == 1) {
 					$row = $result->fetch_assoc();
 					if (strlen($row['ACTIVATION']) < 2) {
@@ -458,6 +460,29 @@
 			}
 		}
 
+		public function checkUpdate($JSON)
+		{
+			$file = file_get_contents(ROOT . '/version.json');
+			$json = json_decode($file, true);
+
+			/*			$id = $this->db->real_escape_string($JSON['id']);
+						$result  = $this->updateUserAppUpdates($id);
+						if($result==false)
+							Log::d('update update check mysql error'.mysqli_error($this->db));
+						if ($this->db->affected_rows == 0) {
+							if($this->registerInstallation($id)!=R_OK)
+							Log::d('update insert check mysql error'.mysqli_error($this->db));
+						}*/
+
+			return $json;
+
+		}
+
+		public function updateUserAppUpdates($id)
+		{
+			return $this->db->query("UPDATE app_installs SET updates=updates+1 WHERE id='{$id}'");
+		}
+
 		/**
 		 * @param $id string 36 chars
 		 *
@@ -472,8 +497,6 @@
 			if ($result == true) {
 				return R_OK;
 			} else {
-				Log::d("LOL DB ERROR:" . mysqli_error($this->db));
-
 				return R_ERROR;
 			}
 		}
