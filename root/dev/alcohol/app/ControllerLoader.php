@@ -43,4 +43,42 @@
 			return $ob;
 		}
 
+		/**
+		 * @param $controller Controller
+		 * @param $request    array
+		 */
+		public static function execAction($controller, $request)
+		{
+			try {
+
+				array_shift($request);
+				if (!empty($request)) {
+					$action             = $request[0];
+					$controller->action = $action;
+
+					if (count($request) > 1) {
+						array_shift($request);
+					} else {
+						$request = array();
+					}
+					//Deletes all trash and saves the parameters for use in next controller actions
+					$controller->request = $request;
+					//Uses the method or goes to the index
+					if ($action != 'action' && $action != 'loadModel' && $action != 'loadView' && is_callable(
+							array($controller, $action)
+						)
+					) {
+						$controller->$action();
+					} else {
+						$controller->index();
+					}
+
+				} else {
+					$controller->index();
+				}
+			} catch (Exception $e) {
+				echo $e->getMessage() . '<br/>' . $e->getTraceAsString();
+			}
+		}
+
 	}

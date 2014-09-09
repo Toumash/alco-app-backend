@@ -3,7 +3,6 @@
 	abstract class Model
 	{
 		/**
-		 * object of the class PDO
 		 * @var PDO
 		 */
 		protected $pdo;
@@ -13,21 +12,57 @@
 		 */
 		public function  __construct()
 		{
-			try {
-				$config_file = R . '/config/config.ini.php';
 
-				$config    = parse_ini_file($config_file, true);
-				$server    = $config['db']['server'];
-				$login     = $config['db']['login'];
-				$password  = $config['db']['password'];
-				$database  = $config['db']['database'];
+			$config_file = R . '/config/config.ini.php';
+			$host        = explode(".", $_SERVER['HTTP_HOST']);
+			$subdomain   = array_shift($host);
+			if ($subdomain == 'test' || $subdomain == 'localhost') {
+				$config_file = R . '/config/test_config.ini.php';
+			} else {
+				$config_file = R . '/config/config.ini.php';
+			}
+			$config   = parse_ini_file($config_file, true);
+			$server   = $config['db']['server'];
+			$login    = $config['db']['login'];
+			$password = $config['db']['password'];
+			$database = $config['db']['database'];
+			try {
 				$this->pdo = new PDO('mysql:host=' . $server . ';dbname=' . $database, $login, $password);
 				$this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 				$this->pdo->query("SET NAMES 'utf8'");
 				//$this->pdo->query("SET CHARACTER SET 'utf8_general_ci'");
 			} catch (PDOException $e) {
-				echo 'The connect can not create: ' . $e->getMessage();
+				die('Błąd połączenie bazy danych. Prosimy spróbować ponownie za kilka chwil: ' . $e->getMessage());
 			}
+		}
+
+		public function getPDO()
+		{
+			return $this->pdo;
+		}
+
+		/**
+		 * autoloads all required contracts
+		 *
+		 * @param $class_name
+		 */
+		function __autoload($class_name)
+		{
+			/** @noinspection PhpIncludeInspection */
+			require_once R . "/model/contracts/{$class_name}.php";
+		}
+
+		public function __destruct()
+		{
+			$this->disconnect();
+		}
+
+		/**
+		 *  Just disconnects the php server from the MySQL server settion the pdo to null
+		 */
+		private function disconnect()
+		{
+			$this->pdo = null;
 		}
 
 		/**

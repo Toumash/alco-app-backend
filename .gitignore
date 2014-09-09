@@ -21,6 +21,6 @@ root/config
 root/cache
 root/logs
 
-
-root/dev/alcohol/app/config
+root/dev/alcohol/app/config/
 root/dev/alcohol/app/cache
+root/dev/alcohol/app/logs

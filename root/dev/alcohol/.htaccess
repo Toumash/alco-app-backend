@@ -1,7 +1,8 @@
 RewriteEngine On
 RewriteBase /
 FallbackResource /alcohol/index.php
-#IndexIgnore *
+ErrorDocument 500 /alcohol/error_page/500.php
+
 
 <Files ~ "\.ini$">
 Order allow,deny

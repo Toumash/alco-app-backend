@@ -33,7 +33,7 @@
 				$ob->index();
 			}
 		}*/
-	$path = trim($_SERVER['REQUEST_URI'], '/'); // Trim leading slash(es)
+	$path = trim($_SERVER['REQUEST_URI'], '/');
 	//$path .= '/';
 
 	$args = explode('/', $path); // Split path on slashes
@@ -50,17 +50,17 @@
 			$file = R . '/controller/' . $name . '.php';
 			if (is_file($file)) {
 				$controller = ControllerLoader::loadController($name);
-				$controller->execAction($args);
+				ControllerLoader::execAction($controller, $args);
 			} else {
 				/** @var $controller ArticlesController */
 				$controller = ControllerLoader::loadController('articles');
-				$controller->execAction($args);
+				ControllerLoader::execAction($controller, $args);
 			}
 		} else {
 
 			/** @var $controller ArticlesController */
-			$controller = ControllerLoader::loadController('articles');
-			$controller->execAction($args);
+//			$controller = ControllerLoader::loadController('articles');
+			ControllerLoader::execAction($controller, $args);
 		}
 		/*		switch ($args[0]) {
 					case 'login':

@@ -76,41 +76,6 @@
 			return $ob;
 		}
 
-		public function execAction($request)
-		{
-			try {
-
-				array_shift($request);
-				if (!empty($request)) {
-					$action       = $request[0];
-					$this->action = $action;
-
-					if (count($request) > 1) {
-						array_shift($request);
-					} else {
-						$request = array();
-					}
-					//Deletes all trash and saves the parameters for use in next controller actions
-					$this->request = $request;
-					//Uses the method or goes to the index
-					if ($action != 'action' && $action != 'loadModel' && $action != 'loadView' && method_exists(
-							$this,
-							$action
-						)
-					) {
-						$this->$action();
-					} else {
-						$this->index();
-					}
-
-				} else {
-					$this->index();
-				}
-			} catch (Exception $e) {
-				echo $e->getMessage() . '<br/>' . $e->getTraceAsString();
-			}
-		}
-
 		public abstract function  index();
 
 		public function requirePermissionLvl($required)

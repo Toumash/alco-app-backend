@@ -6,14 +6,15 @@
 	{
 		/**
 		 * @param $alcohols Alcohol[]
+
 		 *
-		 * @see Alcohol
+*@see Alcohol
 		 *
-		 * @param $userID
+		 * @param $user     User
 		 *
-		 * @return string R_OK|R_ERROR
+*@return string R_OK|R_ERROR
 		 */
-		public function insertSerial($alcohols, $userID)
+		public function insertSerial($alcohols, $user)
 		{
 			try {
 				$this->pdo->beginTransaction();
@@ -29,7 +30,7 @@
 					$sql->bindValue(':volume', $row->volume, PDO::PARAM_INT);
 					$sql->bindValue(':percent', strval($row->percent), PDO::PARAM_STR);
 					$sql->bindValue(':deposit', $row->deposit, PDO::PARAM_INT);
-					$sql->bindValue(':userID', $userID, PDO::PARAM_INT);
+					$sql->bindValue(':userID', $user->id, PDO::PARAM_INT);
 					$sql->execute();
 				}
 				$this->pdo->commit();
@@ -58,7 +59,7 @@
 			while ($row = $query->fetch()) {
 				$alc = new Alcohol($row['NAME'], $row['PRICE'], $row['TYPE'], $row['SUBTYPE'], $row['VOLUME'], $row['PERCENT'], $row['DEPOSIT']);
 				$alc->setId($row['ID']);
-				$array[] = $alc;
+				$array[] = $alc->toAPIArray();
 			}
 
 			return $array;
