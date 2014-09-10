@@ -1,18 +1,16 @@
 <?php
 	require_once R . '/model/model.php';
-	require_once R . '/model/contracts/Alcohol.php';
 
 	class UseralcModel extends Model
 	{
 		/**
 		 * @param $alcohols Alcohol[]
-
 		 *
-*@see Alcohol
+		 * @see Alcohol
 		 *
 		 * @param $user     User
 		 *
-*@return string R_OK|R_ERROR
+		 * @return bool
 		 */
 		public function insertSerial($alcohols, $user)
 		{
@@ -35,18 +33,33 @@
 				}
 				$this->pdo->commit();
 
-				return R_OK;
+				return true;
 			} catch (Exception $e) {
 				if (isset($this->pdo)) {
 					$this->pdo->rollback();
-
-					$this->loadModel('log');
-					LogModel::d($e->getMessage(), LogModel::$API_LOG);
+					$this->log->error('serial inserting error', $e);
 				}
 
-				return R_ERROR;
+				return false;
 			}
+		}
 
+		/**
+		 * @param $id int id of the alcohol in the UserAlcDB
+		 *
+		 * @return bool
+		 */
+		public function exists($id)
+		{
+
+			$sql = $this->pdo->prepare(
+				"SELECT EXISTS(SELECT 1 FROM user_alcohols where ID=:id) as exist LIMIT 1"
+			);
+			$sql->bindValue(':id', $id, PDO::PARAM_INT);
+			$sql->execute();
+			$result = $sql->fetch(PDO::FETCH_ASSOC);
+
+			return $result['exist'] == 1;
 		}
 
 		/**
@@ -54,16 +67,21 @@
 		 */
 		public function fetchAll()
 		{
-			$query = $this->pdo->query("SELECT * FROM user_alcohols LIMIT 2000");
-			$array = array();
-			while ($row = $query->fetch()) {
-				$alc = new Alcohol($row['NAME'], $row['PRICE'], $row['TYPE'], $row['SUBTYPE'], $row['VOLUME'], $row['PERCENT'], $row['DEPOSIT']);
-				$alc->setId($row['ID']);
-				$array[] = $alc->toAPIArray();
-			}
+			try {
+				$query = $this->pdo->query("SELECT * FROM user_alcohols LIMIT 2000");
+				$array = array();
+				while ($row = $query->fetch()) {
+					$alc = new Alcohol($row['NAME'], $row['PRICE'], $row['TYPE'], $row['SUBTYPE'], $row['VOLUME'], $row['PERCENT'], $row['DEPOSIT']);
+					$alc->setId($row['ID']);
+					$array[] = $alc->toAPIArray();
+				}
 
-			return $array;
-//return $this->select('user_alcohols', '*', null, null, 2000);
+				return $array;
+			} catch (PDOException $e) {
+				$this->log->error('fetchAll', $e);
+
+				return array();
+			}
 		}
 
 		/**
@@ -71,30 +89,46 @@
 		 */
 		public function fetchAllWithTypes()
 		{
-			$query = $this->pdo->query(
-				"SELECT u.ID,u.NAME,u.PRICE,u.VOLUME,u.PERCENT,u.DEPOSIT,t.name as type,s.name as subtype FROM user_alcohols as u,alcohol_types as t,alcohol_subtypes as s WHERE u.TYPE= t.id  AND u.SUBTYPE = s.id  AND u.TYPE = s.typeID  ORDER BY u.NAME ASC LIMIT 2000"
-			);
-			$array = array();
-			while ($row = $query->fetch()) {
-				$alc = new Alcohol($row['NAME'], $row['PRICE'], $row['type'], $row['subtype'], $row['VOLUME'], $row['PERCENT'], $row['DEPOSIT']);
-				$alc->setId($row['ID']);
-				$alc->setTypeString($row['type']);
-				$alc->setSubtypeString($row['subtype']);
-				$array[] = $alc;
-			}
+			try {
+				$query = $this->pdo->query(
+					"SELECT u.ID,u.NAME,u.PRICE,u.VOLUME,u.PERCENT,u.DEPOSIT,t.name as type,s.name as subtype FROM user_alcohols as u,alcohol_types as t,alcohol_subtypes as s WHERE u.TYPE= t.id  AND u.SUBTYPE = s.id  AND u.TYPE = s.typeID  ORDER BY u.NAME ASC LIMIT 2000"
+				);
 
-			return $array;
-//return $this->select('user_alcohols', '*', null, null, 2000);
+				$array = array();
+				while ($row = $query->fetch()) {
+					$alc = new Alcohol($row['NAME'], $row['PRICE'], $row['type'], $row['subtype'], $row['VOLUME'], $row['PERCENT'], $row['DEPOSIT']);
+					$alc->setId($row['ID']);
+					$alc->setTypeString($row['type']);
+					$alc->setSubtypeString($row['subtype']);
+					$array[] = $alc;
+				}
+
+				return $array;
+
+			} catch (Exception $e) {
+				$this->log->error('fetching main alcohols', $e);
+
+				return array();
+			}
 		}
 
 
+		/**
+		 * @return int if error returns 0
+		 */
 		public function getCount()
 		{
-			$query  = $this->pdo->query("SELECT COUNT(*) as count FROM user_alcohols");
-			$result = $query->fetch(PDO::FETCH_ASSOC);
-			$count  = $result['count'];
+			try {
+				$query  = $this->pdo->query("SELECT COUNT(*) as count FROM user_alcohols");
+				$result = $query->fetch(PDO::FETCH_ASSOC);
+				$count  = $result['count'];
 
-			return $count;
+				return $count;
+			} catch (Exception $e) {
+				$this->log->error('getCount', $e);
+
+				return -1;
+			}
 		}
 
 		/**
@@ -131,7 +165,7 @@
 
 				if (isset($this->pdo)) {
 					$this->pdo->rollback();
-					LogModel::d($e->getMessage(), LogModel::$API_LOG);
+					$this->log->error('deleting error', $e);
 				}
 
 				return false;

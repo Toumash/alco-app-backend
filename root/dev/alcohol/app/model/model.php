@@ -1,7 +1,17 @@
 <?php
+	if (!defined('R')) {
+		die('This script cannot be run directly!');
+	}
+	require_once(R . '/vendors/log4php/Logger.php');
+	Logger::configure(R . '/vendors/log4php_config.xml');
 
 	abstract class Model
 	{
+		/**
+		 * log4php - the best logger. logs in the /app/logs/ : )
+		 * @var Logger
+		 */
+		public $log;
 		/**
 		 * @var PDO
 		 */
@@ -12,6 +22,7 @@
 		 */
 		public function  __construct()
 		{
+			$this->log = Logger::getLogger(__CLASS__);
 
 			$config_file = R . '/config/config.ini.php';
 			$host        = explode(".", $_SERVER['HTTP_HOST']);
@@ -104,6 +115,7 @@
 		 * @param string $order  Order ($record ASC/DESC)
 		 * @param string $limit  LIMIT
 		 *
+		 * @deprecated
 		 * @return array
 		 */
 		public function select($from, $select = '*', $where = null, $order = null, $limit = null)

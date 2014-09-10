@@ -1,7 +1,6 @@
 <?php
 
 	require_once R . '/model/model.php';
-	require_once R . '/model/contracts/Alcohol.php';
 
 	class MainalcModel extends Model
 	{
@@ -9,7 +8,7 @@
 		 * @param $alcohols Alcohol[]
 		 * @param $user     User
 		 *
-*@return string R_OK|R_ERROR
+		 * @return bool
 		 */
 		public function insertSerial($alcohols, User $user)
 		{
@@ -34,14 +33,14 @@
 				}
 				$this->pdo->commit();
 
-				return R_OK;
+				return true;
 			} catch (Exception $e) {
 				if (isset($this->pdo)) {
 					$this->pdo->rollback();
-					LogModel::d($e->getMessage(), LogModel::$API_LOG);
+					$this->log->error('insertSerial', $e);
 				}
 
-				return R_ERROR;
+				return false;
 			}
 
 		}
@@ -51,68 +50,105 @@
 		 */
 		public function fetchAll()
 		{
-			$query = $this->pdo->query("SELECT * FROM main_alcohols LIMIT 10000");
-			$array = array();
-			while ($row = $query->fetch()) {
-				$alc = new Alcohol($row['NAME'], $row['PRICE'], $row['TYPE'], $row['SUBTYPE'], $row['VOLUME'], $row['PERCENT'], $row['DEPOSIT']);
-				$alc->setId($row['ID']);
-				$array[] = $alc->toAPIArray();
-			}
+			try {
+				$query = $this->pdo->query("SELECT * FROM main_alcohols LIMIT 10000");
+				$array = array();
+				while ($row = $query->fetch()) {
+					$alc = new Alcohol($row['NAME'], $row['PRICE'], $row['TYPE'], $row['SUBTYPE'], $row['VOLUME'], $row['PERCENT'], $row['DEPOSIT']);
+					$alc->setId($row['ID']);
+					$array[] = $alc->toAPIArray();
+				}
 
-			return $array;
+				return $array;
+			} catch (PDOException $e) {
+				$this->log->error('fetchAll', $e);
+
+				return array();
+			}
 		}
 
+		/**
+		 * @param      $id
+		 * @param      $content
+		 * @param User $user
+		 *
+		 * @return bool|null false - MySQL error<br>
+		 *                   null - no alcohol with given id
+		 *                   true - ok
+		 */
 		public function flag($id, $content, User $user)
 		{
+			try {
+				$sql    = $this->pdo->query(
+					"SELECT EXISTS(SELECT 1 FROM main_alcohols where ID=$id LIMIT 1) as exist LIMIT 1"
+				);
+				$result = $sql->fetch(PDO::FETCH_ASSOC);
+			} catch (PDOException $e) {
+				$this->log->error('flagger', $e);
 
-			$sql = $this->pdo->query(
-				"SELECT EXISTS(SELECT 1 FROM main_alcohols where ID=$id LIMIT 1) as exist LIMIT 1"
-			);
-			print_r(mysqli_error($this->db));
-			$result = $query_exist->fetch_assoc();
-			if ($result['exist'] == 1) {
-
-				// if (mysqli_num_rows($query) == 1) {
-				//$json_string = $query->fetch_assoc();
-				//print_r($json_string);
-				/*                        $db_json = json_decode($json_string['FLAGS'], true);
-										$data = $db_json;
-										$data[$login] = $input['info'];*/
-				$time                = date("Y.m.d H:i:s");
-				$query_string_insert = "INSERT INTO alcohol_flags(alcoholID,userID,content,time) VALUES ($id,{$this->profileID},'{$content}','{$time}')";
-				$insert_result       = $this->db->query($query_string_insert);
-
+				return false;
 			}
 
+			if ($result['exist'] == 1) {
+				$time                = date("Y.m.d H:i:s");
+				$query_string_insert = "INSERT INTO alcohol_flags(alcoholID,userID,content,time) VALUES ($id,{$user->id},'{$content}','{$time}')";
 
-			/**
+				try {
+					return $this->pdo->query($query_string_insert) ? true : false;
+				} catch (PDOException $e) {
+					$this->log->error('flag', $e);
+
+					return false;
+				}
+			} else {
+				return null;
+			}
+		}
+
+		/**
 		 * @return Alcohol[] with ID
 		 */
 		public function fetchAllWithTypes()
 		{
-			$query = $this->pdo->query(
-				"SELECT u.ID,u.NAME,u.PRICE,u.VOLUME,u.PERCENT,u.DEPOSIT,t.name as type,s.name as subtype FROM main_alcohols as u,alcohol_types as t,alcohol_subtypes as s WHERE u.TYPE= t.id  AND u.SUBTYPE = s.id  AND u.TYPE = s.typeID  ORDER BY u.NAME ASC LIMIT 10000"
-			);
-			$array = array();
-			while ($row = $query->fetch()) {
-				$alc = new Alcohol($row['NAME'], $row['PRICE'], $row['type'], $row['subtype'], $row['VOLUME'], $row['PERCENT'], $row['DEPOSIT']);
-				$alc->setId($row['ID']);
-				$alc->setTypeString($row['type']);
-				$alc->setSubtypeString($row['subtype']);
-				$array[] = $alc;
-			}
+			try {
+				$query = $this->pdo->query(
+					"SELECT u.ID,u.NAME,u.PRICE,u.VOLUME,u.PERCENT,u.DEPOSIT,t.name as type,s.name AS subtype FROM main_alcohols as u,alcohol_types as t,alcohol_subtypes as s WHERE u.TYPE= t.id  AND u.SUBTYPE = s.id  AND u.TYPE = s.typeID  ORDER BY u.NAME ASC LIMIT 10000"
+				);
 
-			return $array;
-//return $this->select('user_alcohols', '*', null, null, 2000);
+				$array = array();
+				while ($row = $query->fetch()) {
+					$alc = new Alcohol($row['NAME'], $row['PRICE'], $row['type'], $row['subtype'], $row['VOLUME'], $row['PERCENT'], $row['DEPOSIT']);
+					$alc->setId($row['ID']);
+					$alc->setTypeString($row['type']);
+					$alc->setSubtypeString($row['subtype']);
+					$array[] = $alc;
+				}
+
+				return $array;
+
+			} catch (Exception $e) {
+				$this->log->error('fetching main alcohols', $e);
+
+				return array();
+			}
 		}
 
+		/**
+		 * @return int if error returns 0
+		 */
 		public function getCount()
 		{
-			$query  = $this->pdo->query("SELECT COUNT(*) as count FROM main_alcohols");
-			$result = $query->fetch(PDO::FETCH_ASSOC);
-			$count  = $result['count'];
+			try {
+				$query  = $this->pdo->query("SELECT COUNT(*) as count FROM main_alcohols");
+				$result = $query->fetch(PDO::FETCH_ASSOC);
+				$count  = $result['count'];
 
-			return $count;
+				return $count;
+			} catch (Exception $e) {
+				$this->log->error('getCount', $e);
+
+				return -1;
+			}
 		}
 
 		/**
@@ -149,10 +185,79 @@
 
 				if (isset($this->pdo)) {
 					$this->pdo->rollback();
-					LogModel::d($e->getMessage(), LogModel::$API_LOG);
+					$this->log->error('delete not working', $e);
 				}
 
 				return false;
+			}
+		}
+
+		/**
+		 * @param int $id id of the alcohol in the MainAlcDB
+		 *
+		 * @return bool
+		 */
+		public function exists($id)
+		{
+
+			$sql = $this->pdo->prepare(
+				"SELECT EXISTS(SELECT 1 FROM main_alcohols where ID=:id) as exist LIMIT 1"
+			);
+			$sql->bindValue(':id', $id, PDO::PARAM_INT);
+			$sql->execute();
+			$result = $sql->fetch(PDO::FETCH_ASSOC);
+
+			return $result['exist'] == 1;
+		}
+
+		/**
+		 * @param int    $id
+		 * @param string $content
+		 * @param float  $rate
+		 * @param User   $user
+		 *
+		 * @return bool
+		 */
+		public function rate($id, $content, $rate, User $user)
+		{
+			$time = date("Y.m.d H:i:s");
+			try {
+				$sql = $this->pdo->prepare(
+					"SELECT EXISTS(SELECT 1 FROM alcohol_ratings where alcoholID=:id and userID=:profile_id LIMIT 1) as exist"
+				);
+				$sql->bindValue(':id', $id, PDO::PARAM_INT);
+				$sql->bindValue(':profile_id', $id, PDO::PARAM_INT);
+				$sql->execute();
+				$res = $sql->fetch(PDO::FETCH_ASSOC);
+
+
+				if ($res['exist'] == 1) {
+					$sql = $this->pdo->prepare(
+						"UPDATE alcohol_ratings SET content=:content,time=:time,rate=:rate where alcoholID =:id and userID=:user_id LIMIT 1"
+					);
+					$sql->bindValue(':content', $content, PDO::PARAM_STR);
+					$sql->bindValue(':rate', $rate, PDO::PARAM_STR);
+					$sql->bindValue(':id', $id, PDO::PARAM_INT);
+					$sql->bindValue(':user_id', $user->id, PDO::PARAM_INT);
+					$sql->execute();
+				} else {
+					$sql = $this->pdo->prepare(
+						"INSERT INTO alcohol_ratings(alcoholID,userID,content,time,rate) VALUES (:id,:user_id,:content,:time,:rate)"
+					);
+					$sql->bindValue(':id', $id, PDO::PARAM_INT);
+					$sql->bindValue(':user_id', $user->id, PDO::PARAM_INT);
+					$sql->bindValue(':content', $content, PDO::PARAM_STR);
+					$sql->bindValue(':time', $time, PDO::PARAM_STR);
+					$sql->bindValue(':rate', $rate, PDO::PARAM_STR);
+					$sql->execute();
+				}
+
+				return true;
+			} catch (PDOException $e) {
+				$this->log->error('rating mysql error', $e);
+
+				return false;
+
 			}
 		}
 	}

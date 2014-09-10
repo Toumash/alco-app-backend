@@ -11,6 +11,7 @@
 	define('R_EMPTY', 'empty');
 	define('R_VOID_SESSION', 'void_session');
 	define('R_NO_SESSION_DATA', 'no_session_data');
+	define('R_NOT_EXISTS', 'not_exists');
 
 	date_default_timezone_set('Europe/Warsaw');
 
@@ -109,7 +110,7 @@
 			$view->index(array('result' => 'emptyRQ'), $action);
 		}
 
-		public function checkLoginState()
+		public function checkSessionState()
 		{
 			$view = $this->jsonView;
 			$data = $this->getJSONData();
@@ -120,44 +121,12 @@
 
 				$result = false;
 				if (isset($data['session_token'])) {
-					$result = $this->validateSession($data['session_token']);
+					$result = $this->requireActiveSession($data, 'checkSessionState', true);
 				}
-				if ($result == null || ($result == null && $result == false)) {
+				if ($result == false) {
 					$view->index(array('result' => R_VOID_SESSION), 'checkSession');
 				} else {
 					$view->index(array('result' => R_OK), 'checkSession');
-				}
-			}
-		}
-
-		public function uploadAlcohols()
-		{
-			$actionUpload = 'upload';
-			$view         = $this->jsonView;
-			$data         = $this->getJSONData();
-			if ($data == false) {
-				$this->displayEmptyRQ($view, $actionUpload);
-			} else {
-				if ($this->requireActiveSession($data, $actionUpload)) {
-					$session_token = $data['session_token'];
-					if (isset($data['data'])) {
-						$alcohols = $data['data'];
-
-						/** @var $model UseralcModel */
-						$model = $this->loadModel('useralc');
-						$view->index(
-							array(
-								'result' => $model->insertSerial(
-										$model->JSONToAlcohols($alcohols),
-										$this->getUserFromSession($session_token)
-									)
-							),
-							'upload'
-						);
-
-					} else {
-						$this->index(array('result' => R_EMPTY), $actionUpload);
-					}
 				}
 			}
 		}
@@ -178,7 +147,7 @@
 		) {
 			if (isset($json['session_token'])) {
 				/** @var $model LoginModel */
-				$model = $this->loadModel('login');
+				$model  = $this->loadModel('login');
 				$result = $model->isValidSession(new Session($json['session_token']));
 
 				if ($result == false) {
@@ -202,6 +171,49 @@
 		}
 
 		/**
+		 * <b>REQUIRES</b> IN JSON:<br>
+		 * session_token<br>
+		 * data:Alcohol[]-><br>
+		 * NAME,<br>
+		 * VOLUME,<br>
+		 * PRICE,<br>
+		 * TYPE,<br>
+		 * SUBTYPE,<br>
+		 * PERCENT<br>
+		 */
+		public function uploadAlcohols()
+		{
+			$actionUpload = 'upload';
+			$view         = $this->jsonView;
+			$data         = $this->getJSONData();
+			if ($data == false) {
+				$this->displayEmptyRQ($view, $actionUpload);
+			} else {
+				if ($this->requireActiveSession($data, $actionUpload)) {
+					$session_token = $data['session_token'];
+					if (isset($data['data'])) {
+						$alcohols = $data['data'];
+
+						/** @var $model UseralcModel */
+						$model = $this->loadModel('useralc');
+						$view->index(
+							array(
+								'result' => $model->insertSerial(
+										$model->JSONToAlcohols($alcohols),
+										$this->getUserFromSession($session_token)
+									) ? R_OK : R_ERROR
+							),
+							'upload'
+						);
+
+					} else {
+						$this->index(array('result' => R_EMPTY), $actionUpload);
+					}
+				}
+			}
+		}
+
+		/**
 		 * @param $session_token
 		 *
 		 * @return bool|User
@@ -221,6 +233,64 @@
 			$this->displayEmptyRQ($view, '');
 		}
 
+		/**
+		 * <b>REQUIRES</b> IN JSON:<br>
+		 * session_token<br>
+		 * id<br>
+		 * content<br>
+		 * rate<br>
+		 */
+		public function rateAlcohol()
+		{
+			$actionRate = 'rate';
+			$view       = $this->jsonView;
+			$data       = $this->getJSONData();
+			$return     = R_ERROR;
+			if ($data == false) {
+				$this->displayEmptyRQ($view, $actionRate);
+			} else {
+
+				if ($this->requireActiveSession($data, $actionRate)) {
+					$session_token = $data['session_token'];
+
+					if (isset($data['id']) && isset($data['content']) && isset($data['rate'])) {
+						$id      = $data['id'];
+						$content = $data['content'];
+						$rate    = $data['rate'];
+
+						/** @var $main_model MainalcModel */
+						$main_model = $this->loadModel('mainalc');
+
+						if ($main_model->exists($id)) {
+							$user = $this->getUserFromSession($session_token);
+							if ($user != false) {
+								$result = $main_model->rate($id, $content, $rate, $user);
+
+								if ($result == true) {
+									$return = R_OK;
+								} else {
+									$return = R_ERROR;
+								}
+							} else {
+
+								$main_model->log->error('User cannot be retrieved, but session is ok');
+							}
+						} else {
+							$return = R_NOT_EXISTS;
+						}
+						//endif EXISTS
+
+
+					} else {
+						$return = R_EMPTY;
+					}
+					//endif issets
+				}
+
+				$view->index(array('result' => $return), $actionRate);
+			}
+		}
+
 		public function flagAlcohol()
 		{
 			$actionFlag = 'flagAlcohol';
@@ -230,7 +300,7 @@
 				$this->displayEmptyRQ($view, $actionFlag);
 			} else {
 				if ($this->requireActiveSession($data, $actionFlag, false)) {
-					if (!empty($data['id']) && !empty($data['content'])) {
+					if (isset($data['id']) && isset($data['content'])) {
 						$id      = $data['id'];
 						$content = $data['content'];
 
@@ -241,7 +311,7 @@
 						$result = $main_model->flag($id, $content, $user->id);
 
 						if ($result == false) {
-							$this->jsonView->index(array('result' => 'error'), $actionFlag);
+							$this->jsonView->index(array('result' => R_ERROR), $actionFlag);
 						} else {
 							$view->index(array('result' => R_OK), $actionFlag);
 						}
