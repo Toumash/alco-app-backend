@@ -1,4 +1,7 @@
 <?php
+	if (!defined('R')) {
+		die('This script cannot be run directly');
+	}
 	require_once R . '/model/model.php';
 
 	class UseralcModel extends Model

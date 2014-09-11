@@ -24,25 +24,23 @@
     {if="isset($LOGIN_FORM)"}
     {$LOGIN_FORM}
     {/if}
-    <div class="content-wrapper">
-        <div class="content">
-            {if="isset($ERRORS)"}
-            <div class="messages-error">
-                {loop="$ERRORS"}
-                {$value} <br/>
-                {/loop}
-            </div>
-            {/if}
-
-            {if="isset($INFO)"}
-            <div class="messages-info">
-                {loop="$INFO"}
-                {$value} <br/>
-                {/loop}
-            </div>
-            {/if}
-            {$content}
+    <div class="content">
+        {if="isset($ERRORS)"}
+        <div class="messages-error">
+            {loop="$ERRORS"}
+            {$value} <br/>
+            {/loop}
         </div>
+        {/if}
+
+        {if="isset($INFO)"}
+        <div class="messages-info">
+            {loop="$INFO"}
+            {$value} <br/>
+            {/loop}
+        </div>
+        {/if}
+        {$content}
     </div>
     <div class="footer">
         {if="isset($FOOTER)"}

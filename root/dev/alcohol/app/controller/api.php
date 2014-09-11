@@ -5,13 +5,19 @@
 
 	require_once R . '/controller/controller.php';
 
-	define('R_LOGIN_PASSWORD', 'login_password');
+
 	define('R_ERROR', 'error');
 	define('R_OK', 'ok');
+	define('R_NO_SUCH_METHOD)', 'no_method');
+
 	define('R_EMPTY', 'empty');
-	define('R_VOID_SESSION', 'void_session');
-	define('R_NO_SESSION_DATA', 'no_session_data');
 	define('R_NOT_EXISTS', 'not_exists');
+	define('R_LOGIN_PASSWORD', 'login_password');
+	define('R_VOID_SESSION', 'void_session');
+	define('R_NO_SESSION_DATA', 'no_session_token');
+	define('R_NO_JSON', 'no_json');
+	define('R_DB_ERROR', 'db_error');
+
 
 	date_default_timezone_set('Europe/Warsaw');
 
@@ -47,7 +53,7 @@
 			$view = $this->jsonView;
 			$data = $this->getJSONData();
 
-
+			$array = array();
 			if ($data == false) {
 				$this->displayEmptyRQ($view, 'login');
 			} else {
@@ -59,12 +65,16 @@
 					$login_model = $this->loadModel('login');
 					$result      = $login_model->createSession($data['login'], $data['password'], $data['install_id']);
 				}
-				if ($result == null || ($result == null && $result == false)) {
-					$view->index(array('result' => 'error'), 'login');
+				if ($result == null) {
+					$array = $this->buildErrorArray(R_LOGIN_PASSWORD);
+				} elseif ($result == false) {
+
+					$array = $this->buildErrorArray(R_DB_ERROR);
 				} else {
-					$view->index(array('result' => 'ok', 'session_token' => $result->token), 'login');
+					$array = array('result' => R_OK, 'session_token' => $result->token);
 				}
 			}
+			$view->index($array, 'login');
 		}
 
 		/**
@@ -92,8 +102,9 @@
 				if (isset($JSON_dump['install_id'])) {
 					$JSON_dump['install_id'] = '---';
 				}
-				$this->loadModel('log');
-				LogModel::d('API RQ: ' . json_encode($JSON_dump), LogModel::$API_LOG);
+				/** @var $model UseralcModel */
+				$model = $this->loadModel('useralc');
+				$model->log->error('Bad json: ' . json_encode($JSON_dump));
 
 				return $JSON;
 			} else {
@@ -107,7 +118,12 @@
 		 */
 		private function displayEmptyRQ($view, $action)
 		{
-			$view->index(array('result' => 'emptyRQ'), $action);
+			$view->index($this->buildErrorArray(R_NO_JSON), $action);
+		}
+
+		private function buildErrorArray($nfo)
+		{
+			return array('result' => R_ERROR, 'error_info' => $nfo);
 		}
 
 		public function checkSessionState()
@@ -124,7 +140,7 @@
 					$result = $this->requireActiveSession($data, 'checkSessionState', true);
 				}
 				if ($result == false) {
-					$view->index(array('result' => R_VOID_SESSION), 'checkSession');
+					$view->index($this->buildErrorArray(R_VOID_SESSION), 'checkSession');
 				} else {
 					$view->index(array('result' => R_OK), 'checkSession');
 				}
@@ -153,7 +169,7 @@
 				if ($result == false) {
 					if ($return == false) {
 						$view = $this->jsonView;
-						$view->index(array('result' => R_VOID_SESSION), $action);
+						$view->index($this->buildErrorArray(R_VOID_SESSION), $action);
 					}
 
 					return false;
@@ -163,7 +179,7 @@
 			} else {
 				if ($return == false) {
 					$view = $this->jsonView;
-					$view->index(array('result' => R_NO_SESSION_DATA), $action);
+					$view->index($this->buildErrorArray(R_NO_SESSION_DATA), $action);
 				}
 
 				return false;
@@ -207,7 +223,7 @@
 						);
 
 					} else {
-						$this->index(array('result' => R_EMPTY), $actionUpload);
+						$this->index($this->buildErrorArray(R_EMPTY), $actionUpload);
 					}
 				}
 			}
@@ -230,7 +246,7 @@
 		function index()
 		{
 			$view = $this->jsonView;
-			$this->displayEmptyRQ($view, '');
+			$view->index($this->buildErrorArray(R_NO_SUCH_METHOD), 'index');
 		}
 
 		/**
@@ -246,6 +262,7 @@
 			$view       = $this->jsonView;
 			$data       = $this->getJSONData();
 			$return     = R_ERROR;
+			$error_info = '';
 			if ($data == false) {
 				$this->displayEmptyRQ($view, $actionRate);
 			} else {
@@ -276,18 +293,22 @@
 								$main_model->log->error('User cannot be retrieved, but session is ok');
 							}
 						} else {
-							$return = R_NOT_EXISTS;
+							$error_info = R_NOT_EXISTS;
 						}
 						//endif EXISTS
 
 
 					} else {
-						$return = R_EMPTY;
+						$error_info = R_EMPTY;
 					}
 					//endif issets
 				}
 
-				$view->index(array('result' => $return), $actionRate);
+				if ($return == R_OK) {
+					$view->index(array('result' => R_OK), $actionRate);
+				} else {
+					$view->index($this->buildErrorArray($error_info), $actionRate);
+				}
 			}
 		}
 
@@ -359,7 +380,7 @@
 					return $json;
 				}
 			}
-			$this->jsonView->index(array('result' => R_ERROR), 'checkUpdate');
+			$this->jsonView->index($this->buildErrorArray(R_ERROR), 'checkUpdate');
 
 			return false;
 		}
@@ -382,23 +403,4 @@
 				}
 			}
 		}
-
-		/*		/**
-				 * @param $login
-				 * @param $password
-				 *
-				 * @see         LoginModel
-				 * @return bool||User false if login or password wrong<br>
-				 *              User - if everything good
-				 * @see         User
-				 *
-				private function apiFastLogin($login, $password)
-				{
-					/** @var $model LoginModel *
-					$model  = $this->loadModel('login');
-					$result = $model->login($login, $password);
-
-					return $result;
-				}
-			*/
 	}

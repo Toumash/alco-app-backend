@@ -1,4 +1,4 @@
 # no one gets in here!
-deny from all
+#deny from all
 
 ErrorDocument 404 /alcohol/index.php"
