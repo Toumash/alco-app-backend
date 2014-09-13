@@ -41,8 +41,8 @@
 	/*	print_r($args);*/
 	if (empty($args) || $args[0] == '') // No path elements means home
 	{
-		require_once R . '/controller/articles.php';
-		$ob = new ArticlesController();
+		require_once R . '/controller/pages.php';
+		$ob = new PagesController();
 		$ob->index();
 	} else {
 		if ($args[0] != 'controller') {
@@ -52,14 +52,14 @@
 				$controller = ControllerLoader::loadController($name);
 				ControllerLoader::execAction($controller, $args);
 			} else {
-				/** @var $controller ArticlesController */
-				$controller = ControllerLoader::loadController('articles');
+				/** @var $controller PagesController */
+				$controller = ControllerLoader::loadController('pages');
 				ControllerLoader::execAction($controller, $args);
 			}
 		} else {
 
-			/** @var $controller ArticlesController */
-//			$controller = ControllerLoader::loadController('articles');
+			/** @var $controller PagesController */
+			$controller = ControllerLoader::loadController('pages');
 			ControllerLoader::execAction($controller, $args);
 		}
 		/*		switch ($args[0]) {

@@ -18,5 +18,7 @@
 					if ($_SESSION['auth'] == true):
 	?>
     <li><a href="/alcohol/login/logout" title="Wyloguj">Wyloguj</a></li>
+    <?php else: ?>
+    <li><a href="/alcohol/login/" title="Zaloguj">Zaloguj</a></li>
     <?php endif; ?>
 </ul>

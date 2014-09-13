@@ -7,7 +7,6 @@
 
 <table class="alcohols-table">
     <thead>
-    <tr>
     <th>id</th>
     <th>Nazwa</th>
     <th>Cena</th>
@@ -20,9 +19,7 @@
     <th>Usuń</th>
     {/if}
     </thead>
-
     {loop="$alcohols"}
-
     <tr>
         <td data-th="ID">#{$value->id}</td>
         <td data-th="Nazwa">{$value->name}</td>
@@ -32,14 +29,11 @@
         <td data-th="Typ">{$value->typeString}</td>
         <td data-th="Podtyp">{$value->subtypeString}</td>
         <td data-th="Kaucja">{$value->deposit}</td>
-
         {if="$lvl>=$lvl_delete"}
-        <td data-th="Usuń">
-            <a class="delete" href="/alcohol/maindb/delete/{$value->id}">[ X ]</a>
-        </td>
+        <td data-th="Usuń"><a class="delete" href="/alcohol/maindb/delete/{$value->id}"><img
+                src="/alcohol/images/action_delete.png"></a></td>
         {/if}
     </tr>
-
     {/loop}
 
     {if="$lvl>=$lvl_add"}

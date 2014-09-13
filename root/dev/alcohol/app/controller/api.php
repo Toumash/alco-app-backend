@@ -8,7 +8,7 @@
 
 	define('R_ERROR', 'error');
 	define('R_OK', 'ok');
-	define('R_NO_SUCH_METHOD)', 'no_method');
+	define('R_NO_METHOD', 'no_method');
 
 	define('R_EMPTY', 'empty');
 	define('R_NOT_EXISTS', 'not_exists');
@@ -246,7 +246,7 @@
 		function index()
 		{
 			$view = $this->jsonView;
-			$view->index($this->buildErrorArray(R_NO_SUCH_METHOD), 'index');
+			$view->index($this->buildErrorArray(R_NO_METHOD), 'index');
 		}
 
 		/**

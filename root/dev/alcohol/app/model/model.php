@@ -3,7 +3,12 @@
 		die('This script cannot be run directly!');
 	}
 	require_once(R . '/vendors/log4php/Logger.php');
+
 	Logger::configure(R . '/config/log4php_config.xml');
+
+	require_once R . '/model/contracts/Alcohol.php';
+	require_once R . '/model/contracts/Session.php';
+	require_once R . '/model/contracts/User.php';
 
 	abstract class Model
 	{

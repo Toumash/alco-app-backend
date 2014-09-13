@@ -88,7 +88,6 @@
 		 * @param $login
 		 * @param $password
 		 *
-		 * @deprecated
 		 * @return bool|User
 		 */
 		public function login($login, $password)

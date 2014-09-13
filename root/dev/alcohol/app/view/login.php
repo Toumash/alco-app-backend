@@ -13,12 +13,12 @@
 
 		public function  index()
 		{
-			//$cat=$this->loadModel('categories');
-			//$this->set('catsData', $cat->getAll());
+
 			$this->tpl->assign('title', 'Logowanie');
-			$this->tpl->assign('content', 'heuheuehue');
-			$this->tpl->draw('login');
-			//$this->render('indexLogin');
+			$content = $this->tpl->draw('c_login', true);
+			$this->tpl->assign('title_main', 'Logowanie');
+			$this->tpl->assign('content', $content);
+			$this->tpl->draw('default');
 		}
 
 		/**
@@ -26,10 +26,13 @@
 		 */
 		public function success($login_result)
 		{
-			$this->tpl->assign('title', 'Trwa logowanie...');
 			if ($login_result == false) {
 				$this->tpl->assign('result', 'Błąd');
-				$this->tpl->draw('login');
+				$content = $this->tpl->draw('c_login', true);
+
+				$this->tpl->assign('title_main', 'Logowanie');
+				$this->tpl->assign('content', $content);
+				$this->tpl->draw('default');
 			} else {
 				if ($login_result == true) {
 					header("Refresh: 3; URL = /alcohol/articles/");

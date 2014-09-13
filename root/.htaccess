@@ -40,5 +40,5 @@ Header set Cache-Control "max-age=10800, public "
 
 # NEVER CACHE - notice the extra directives
 <FilesMatch "\.(html|htm|php|cgi|pl)$">
-Header set Cache-Control "max-age=120, private, no-store, no-cache, must-revalidate"
+Header set Cache-Control "max-age=50, private, no-store, no-cache, must-revalidate"
 </FilesMatch>
