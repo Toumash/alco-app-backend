@@ -1,8 +1,10 @@
 <?php
 
 	define('LVL_VIEW_MAIN', 1);
+	define('LVL_VIEW_USER', 3);
 	define('LVL_MAIN_DELETE', 4);
 	define('LVL_MAIN_ADD', 4);
+	define('LVL_ENABLED', true); // only for checking if lvl ale  enabled
 
 	abstract class Controller
 	{

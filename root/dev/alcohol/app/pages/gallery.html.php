@@ -5,7 +5,7 @@
 		$dir = scandir($dirf);
 		foreach ($dir as $file) {
 			if ($file != '.' && $file != '..' && $file[1] != 'h' && $file[2] != 't') {
-				echo '<img  src="/alcohol/images/demo/' . $file . '"/>';
+				echo '<a href="/alcohol/images/demo/' . $file . '"><img  src="/alcohol/images/demo/' . $file . '"/></a>';
 			}
 		}
 	?>

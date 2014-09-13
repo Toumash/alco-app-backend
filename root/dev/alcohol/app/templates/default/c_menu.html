@@ -1,3 +1,4 @@
+<?php if(!defined('LVL_ENABLED'))die('Menu couldn\'t be draw without permission levels'); ?>
 <!--suppress HtmlUnknownTarget -->
 <ul>
     <li><a href="/alcohol/pages/" title="Strona główna">Strona główna</a></li>
@@ -6,7 +7,7 @@
     <?php endif; ?>
     <li><a href="/alcohol/pages/help" title="Pomoc">Pomoc</a></li>
     <li><a href="/alcohol/pages/gallery" title="Galeria">Galeria</a></li>
-    <?php if ($_SESSION['lvl'] >= 5): ?>
+    <?php if ($_SESSION['lvl'] >= LVL_VIEW_MAIN): ?>
     <li><a href="/alcohol/dbchooser" title="DB">Bazy Danych</a></li>
     <?php endif;
 					if ($_SESSION['lvl'] >= 6):

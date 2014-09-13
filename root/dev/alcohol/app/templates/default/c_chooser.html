@@ -4,19 +4,25 @@
         <tr>
             <td style="padding-right:2em;"><a href="/alcohol/dbchooser/main"><img
                     src="/alcohol/images/database-main.png"></a></td>
+            <?php if($_SESSION['lvl']>=LVL_VIEW_USER):?>
             <td><a href="/alcohol/dbchooser/user"><img src="/alcohol/images/database-users.png"></a></td>
+            <?php endif; ?>
         </tr>
         <tr>
             <td style="padding-right:2em; text-align: center;">Główna</td>
+            <?php if($_SESSION['lvl']>=LVL_VIEW_USER):?>
             <td style="text-align: center;">Użyszkodników</td>
+            <?php endif; ?>
         </tr>
         <tr>
             <td style="padding-right:2em;">
                 <center>{$count_main}</center>
             </td>
+            <?php if($_SESSION['lvl']>=LVL_VIEW_USER):?>
             <td>
                 <center>{$count_user}</center>
             </td>
+            <?php endif; ?>
         </tr>
     </table>
 </center>

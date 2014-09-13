@@ -1,8 +1,8 @@
 
 .container {
     z-index: auto;
-    padding: 0;
     margin: 1em auto 2em auto;
+    padding: 0;
     min-height: 40em;
     max-width: 1050px;
     /*    border: #a5c72d solid 3px;*/
@@ -47,8 +47,8 @@ body {
 .menu-main {
     padding: 0 0.5em 0.3em;
     /*background-color: #a5c72d;*/
-    background-color: #282828;
     border-top: solid #2D9FC9 5px;
+    background-color: #282828;
     color: #DDDDDD;
 }
 
@@ -73,37 +73,9 @@ body {
 }
 
 .menu-main ul li a:hover {
-    color: #F4F7FC;
-    /*    font-weight: bold;*/
     border-bottom: solid #33B5E5 5px;
-}
-
-.login_form {
-    margin-left: auto;
-    padding-right: 1%;
-    height: 30px;
-    background-color: #a5c72d;
-    text-align: right;
-    font-size: 100%;
-}
-
-input.holo[type='text'], input.holo[type='password'] {
-    /* You can set width to whatever you like */
-    position: relative;
-    margin: 0;
-    padding: 4px 6px 4px 6px;
-    width: 80px;
-    height: 20px;
-    outline: none;
-    border: none;
-    background: bottom left linear-gradient(#a9a9a9, #a9a9a9) no-repeat, bottom center linear-gradient(#a9a9a9, #a9a9a9) repeat-x, bottom right linear-gradient(#a9a9a9, #a9a9a9) no-repeat;
-    background-size: 1px 4px, 1px 1px, 1px 4px;
-    font-family: "Roboto", "Droid Sans", sans-serif;
-}
-
-input.holo[type='text']:hover, input.holo[type='password']:hover, input.holo[type='text']:focus, input.holo[type='password']:focus {
-    background: bottom left linear-gradient(#0099cc, #0099cc) no-repeat, bottom center linear-gradient(#0099cc, #0099cc) repeat-x, bottom right linear-gradient(#0099cc, #0099cc) no-repeat;
-    background-size: 1px 4px, 1px 1px, 1px 4px;
+    /*    font-weight: bold;*/
+    color: #F4F7FC;
 }
 
 .messages-error {
@@ -121,22 +93,14 @@ input.holo[type='text']:hover, input.holo[type='password']:hover, input.holo[typ
 }
 
 .content {
-    min-height: 30em;
-}
-
-.content {
     padding: .5em .5em .5em 1.5em;
-    min-height: 20em;
+    min-height: 30em;
     /* width:100%; makes right end look weird */
     /* background-color:#474747; */
     height: 100%;
     /*    background-image:url('images/background-content-min.jpg');*/
     color: #DDDDDD;
     text-decoration: none;
-}
-
-.content label {
-    color: #EEEEEE;
 }
 
 .content div img {
@@ -170,7 +134,7 @@ input.holo[type='text']:hover, input.holo[type='password']:hover, input.holo[typ
     line-height: 3em;
 }
 
-.footer span.sql-performance {
+.footer > span {
     display: inline-block;
     vertical-align: middle;
     line-height: normal;
@@ -184,7 +148,7 @@ ALCOHOLS TABLE
 */
 .alcohols-table {
     margin: 1em 0;
-    width: 90%;
+    width: 100%;
     border-spacing: 1px;
 }
 
@@ -215,14 +179,14 @@ ALCOHOLS TABLE
 
 .alcohols-table a.delete {
     color: #DDDDDD;
-    font-weight: bolder;
     text-align: center;
+    font-weight: bolder;
 }
 
 .alcohols-table a.delete img {
-    height: 1.5em;
     display: block;
     margin: auto;
+    height: 1.5em;
 }
 
 .alcohols-table a.approve {
@@ -231,11 +195,11 @@ ALCOHOLS TABLE
 }
 
 .alcohols-table input {
-    color: #F4F7FC;
     width: 100%;
     height: 1.1em;
     border-style: none;
     background: transparent;
+    color: #F4F7FC;
 }
 
 .alcohols-table input[type='submit'] {
@@ -257,6 +221,22 @@ ALCOHOLS TABLE
 }
 
 @media screen and (max-width: 600px) {
+    h1 {
+        font-size: larger;
+    }
+
+    h1, h2, h3, h4 {
+        text-align: center;
+    }
+
+    .content div img {
+        box-sizing: border-box;
+        margin: 3px;
+        width: 47%;
+        border-radius: 10px 10px;
+        box-shadow: black 0 0 5px;
+    }
+
     .container {
         margin: 0;
         padding: 0;
@@ -270,8 +250,9 @@ ALCOHOLS TABLE
         box-shadow: 0 0;
     }
 
-    .login_form {
-        font-size: 80%;
+    .content {
+        padding-right: 0.2em;
+        padding-left: 0.2em;
     }
 
     .alcohols-table thead {
@@ -287,17 +268,15 @@ ALCOHOLS TABLE
         padding-right: 0.6em;
     }
 
-    /*    .alcohols-table tr{
-            display:inline-block;
-            width:50%;
-        }*/
     .alcohols-table td {
         position: relative;
         display: block;
-        padding-top: 2px;
-        padding-bottom: 2px;
-        padding-left: 60%;
+        padding-top: 0.1em;
+        padding-bottom: 0.1em;
+        padding-left: 40%;
         text-align: left;
+        color: #DDDDDD;
+        font-size: small;
     }
 
     .alcohols-table td:before {
@@ -306,15 +285,13 @@ ALCOHOLS TABLE
         bottom: 0;
         left: 0;
         display: inline-block;
-        padding-top: 5px;
-        padding-left: 20%;
+        padding-left: .5em;
         max-height: 100%;
-        width: 33%;
-        border-right: 2px solid transparent;
+        width: 20%;
 
-        color: #000;
+        color: #AAAAAA;
+        font-weight: bolder;
         content: attr(data-th) ":";
-        font-weight: 300;
         font-size: 100%;
     }
 
