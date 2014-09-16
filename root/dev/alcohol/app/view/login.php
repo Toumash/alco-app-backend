@@ -35,8 +35,13 @@
 				$this->tpl->draw('default');
 			} else {
 				if ($login_result == true) {
-					header("Refresh: 3; URL = /alcohol/articles/");
-					$this->tpl->draw('loginRedirect');
+					header("Refresh: 2; URL = /alcohol/pages/");
+					$content = $this->tpl->draw('c_login_redirect', true);
+					$this->tpl->assign('title_main', 'Przekierowywanie...');
+					$this->tpl->assign('content', $content);
+					$this->tpl->assign('header_off', ''); //disables the header
+					$this->tpl->assign('menu_off', ''); //disables the menu
+					$this->tpl->draw('default');
 				}
 			}
 		}

@@ -7,6 +7,12 @@
 
 	class LoginModel extends Model
 	{
+		public function __construct()
+		{
+			parent::__construct();
+			$this->log = Logger::getLogger(__CLASS__);
+		}
+
 		public function delete($id)
 		{
 			$del = $this->pdo->prepare('DELETE FROM categories where id=:id');

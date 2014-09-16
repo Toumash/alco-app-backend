@@ -6,6 +6,40 @@
 
 	class MainalcModel extends Model
 	{
+		public function __construct()
+		{
+			parent::__construct();
+			$this->log = Logger::getLogger(__CLASS__);
+		}
+
+		/**
+		 * @param $alc_id int
+		 * @param $limit  int  how much to fetch
+		 *
+		 * @return array|null
+		 */
+		public function fetchRatings($alc_id, $limit)
+		{
+
+			$query_string = "SELECT r.rate,r.time,r.content,u.LOGIN FROM alcohol_ratings AS r,users  AS u WHERE r.userID= u.ID AND r.alcoholID={$alc_id} ORDER BY r.time DESC LIMIT {$limit}";
+			$query        = $this->pdo->query($query_string);
+			$result       = array();
+			while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
+				$alc      = array();
+				$alc['d'] = $row['time'];
+				$alc['c'] = $row['content'];
+				$alc['a'] = $row['LOGIN'];
+				$alc['r'] = $row['rate'];
+
+				$result[] = $alc;
+			}
+			if (!empty($result) > 0) {
+				return $result;
+			} else {
+				return null;
+			}
+		}
+
 		/**
 		 * @param $alcohols Alcohol[]
 		 * @param $user     User

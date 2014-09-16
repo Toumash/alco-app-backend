@@ -6,6 +6,12 @@
 
 	class UseralcModel extends Model
 	{
+		public function __construct()
+		{
+			parent::__construct();
+			$this->log = Logger::getLogger(__CLASS__);
+		}
+
 		/**
 		 * @param $alcohols Alcohol[]
 		 *

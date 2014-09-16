@@ -58,7 +58,7 @@
 				$this->displayEmptyRQ($view, 'login');
 			} else {
 
-				$result = false;
+				$result = null;
 				if (isset($data['login']) && isset($data['password']) && isset($data['install_id'])) {
 
 					/** @var $login_model LoginModel */
@@ -126,23 +126,36 @@
 			return array('result' => R_ERROR, 'error_info' => $nfo);
 		}
 
-		public function checkSessionState()
+		public function fetchRatings()
 		{
+
 			$view = $this->jsonView;
 			$data = $this->getJSONData();
 
-			if ($data == false) {
-				$this->displayEmptyRQ($view, 'checkSession');
-			} else {
 
-				$result = false;
-				if (isset($data['session_token'])) {
-					$result = $this->requireActiveSession($data, 'checkSessionState', true);
-				}
-				if ($result == false) {
-					$view->index($this->buildErrorArray(R_VOID_SESSION), 'checkSession');
-				} else {
-					$view->index(array('result' => R_OK), 'checkSession');
+			if ($data == false) {
+				$this->displayEmptyRQ($view, 'login');
+			} else {
+				if ($this->requireActiveSession($data, 'fetchRatings')) {
+					$session_token = $data['session_token'];
+					/** @noinspection PhpUnusedLocalVariableInspection */
+					$array = array();
+					if (isset($data['id'])) {
+						$alcohol_id = $data['id'];
+						$limit      = isset($data['count']) ? $data['count'] : 120;
+						/** @var $ratings_model MainalcModel */
+						$ratings_model = $this->loadModel('mainalc');
+						$ratings       = $ratings_model->fetchRatings($alcohol_id, $limit);
+						if ($ratings != null) {
+							$array = array('result' => R_OK, 'data' => $ratings);
+
+						} else {
+							$array = array('result' => R_OK, 'data' => '');
+						}
+					} else {
+						$array = $this->buildErrorArray(R_EMPTY);
+					}
+					$view->index($array, 'fetchRatings');
 				}
 			}
 		}
@@ -186,6 +199,28 @@
 			}
 		}
 
+		public
+		function checkSessionState()
+		{
+			$view = $this->jsonView;
+			$data = $this->getJSONData();
+
+			if ($data == false) {
+				$this->displayEmptyRQ($view, 'checkSession');
+			} else {
+
+				$result = false;
+				if (isset($data['session_token'])) {
+					$result = $this->requireActiveSession($data, 'checkSessionState', true);
+				}
+				if ($result == false) {
+					$view->index($this->buildErrorArray(R_VOID_SESSION), 'checkSession');
+				} else {
+					$view->index(array('result' => R_OK), 'checkSession');
+				}
+			}
+		}
+
 		/**
 		 * <b>REQUIRES</b> IN JSON:<br>
 		 * session_token<br>
@@ -197,7 +232,8 @@
 		 * SUBTYPE,<br>
 		 * PERCENT<br>
 		 */
-		public function uploadAlcohols()
+		public
+		function uploadAlcohols()
 		{
 			$actionUpload = 'upload';
 			$view         = $this->jsonView;
@@ -234,8 +270,10 @@
 		 *
 		 * @return bool|User
 		 */
-		private function getUserFromSession($session_token)
-		{
+		private
+		function getUserFromSession(
+			$session_token
+		) {
 			/** @var $login_model LoginModel */
 			$login_model = $this->loadModel('login');
 
@@ -256,7 +294,8 @@
 		 * content<br>
 		 * rate<br>
 		 */
-		public function rateAlcohol()
+		public
+		function rateAlcohol()
 		{
 			$actionRate = 'rate';
 			$view       = $this->jsonView;
@@ -312,7 +351,8 @@
 			}
 		}
 
-		public function flagAlcohol()
+		public
+		function flagAlcohol()
 		{
 			$actionFlag = 'flagAlcohol';
 			$view       = $this->jsonView;
@@ -342,7 +382,8 @@
 			}
 		}
 
-		public function downloadMainDB()
+		public
+		function downloadMainDB()
 		{
 			$actionDownload = 'downloadMainDB';
 			$view           = $this->jsonView;
@@ -370,8 +411,8 @@
 		public
 		function checkUpdate()
 		{
-			if (file_exists(R . '/updates/version.json')) {
-				$file = file_get_contents(R . '/updates/version.json');
+			if (file_exists(WR . '/updates/version.json')) {
+				$file = file_get_contents(WR . '/updates/version.json');
 				if ($file != false) {
 					$json = json_decode($file, true);
 

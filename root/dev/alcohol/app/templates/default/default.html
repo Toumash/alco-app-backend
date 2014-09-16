@@ -7,20 +7,26 @@
     <link rel="icon" href="/alcohol/images/favicon.ico">
     <link rel="favicon" href="/alcohol/images/favicon.ico" type="image/vnd.microsoft.icon">
     <link rel="stylesheet" type="text/css" href="/alcohol/css/default.css">
-    <script async src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <!--<script async src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>-->
     <!--    <script type="text/javascript" async src="../jQuery.js"></script>-->
     <!--<script type="text/javascript" src="rmvAds.js"></script>-->
     <title>{$title_main}</title>
 </head>
 <body>
 <div class="container">
+    {if="!isset($header_off)"}
     <div id="header_back">
         <div class="header">
         </div>
     </div>
+    {/if}
+
+    {if="!isset($menu_off)"}
     <div class="menu-main">
         {include="c_menu"}
     </div>
+    {/if}
+
     {if="isset($LOGIN_FORM)"}
     {$LOGIN_FORM}
     {/if}

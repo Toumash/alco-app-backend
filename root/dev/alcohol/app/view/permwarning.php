@@ -13,10 +13,10 @@
 
 		public function  index($required, $lvl)
 		{
-			$this->tpl->assign('title', 'Błąd Autoryzacji');
+			$this->tpl->assign('title_main', 'Błąd Autoryzacji');
 			$this->tpl->assign(
 				'content',
-				'<h1>Brak dostępu</h1><p>Twój poziom uprawnień (' . $lvl . ') jest niewystarczający, aby oglądać tę stronę. WYMAGANY: ' . $required . 'lvl</p>'
+				'<h1>Brak dostępu</h1><p>Twój poziom uprawnień ( ' . $lvl . ' ) jest niewystarczający, aby oglądać tę stronę. WYMAGANY: ' . $required . ' lvl</p>'
 			);
 			$this->tpl->draw('default');
 		}

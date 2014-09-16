@@ -1,37 +1,29 @@
 <?php
+	if (!defined('R')) {
+		die('This script cannot be run directly!');
+	}
+	require_once R . '/model/model.php';
 
-	/**
-	 * @author Toumash <dev.code-sharks.pl/about?p=toumash>
-	 */
 	class LogModel
 	{
+		public $DEFAULT_LOG = 'app/logs/Log.log';
 
-		public static $DEFAULT_LOG = 'app/logs/main.log';
-		public static $API_LOG = 'app/logs/api.log';
-
-		public static function d($data, $file = ' ')
+		public function __construct()
 		{
-			$file = ($file == ' ') ? self::$DEFAULT_LOG : $file;
-			$fp   = fopen($file, "a");
-// blokada zapisu
-			flock($fp, 2);
-			fwrite($fp, date("Ymd H:i") . ' ' . $data . "\n");
-// odblokowanie
-			flock($fp, 3);
-			fclose($fp);
+			$this->DEFAULT_LOG = R . '/logs/Log.log';
 		}
 
-		public static function read($file = ' ')
+		public function read($file = ' ')
 		{
-			$file    = ($file == ' ') ? self::$DEFAULT_LOG : $file;
+			$file    = ($file == ' ') ? $this->DEFAULT_LOG : $file;
 			$content = file_get_contents($file);
 
 			return $content;
 		}
 
-		public static function cut($file = ' ')
+		public function cut($file = ' ')
 		{
-			$file = ($file == ' ') ? self::$DEFAULT_LOG : $file;
+			$file = ($file == ' ') ? $this->DEFAULT_LOG : $file;
 			$f    = file($file);
 
 // get first 40 elements
@@ -41,9 +33,9 @@
 			file_put_contents($file, implode('', $fa));
 		}
 
-		public static function getLines($file = ' ')
+		public function getLines($file = ' ')
 		{
-			$file  = ($file == ' ') ? self::$DEFAULT_LOG : $file;
+			$file  = ($file == ' ') ? $this->DEFAULT_LOG : $file;
 			$f     = fopen($file, 'rb');
 			$lines = 0;
 
@@ -55,5 +47,4 @@
 
 			return $lines;
 		}
-
 	}

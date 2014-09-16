@@ -30,8 +30,11 @@
 		private function serveNotFound()
 		{
 			$error = "Przepraszamy, nie znaleziono żądanej strony";
-			$this->tpl->assign('title_main', '404');
 			$this->tpl->assign('error', $error);
-			$this->tpl->draw('404');
+			$content = $this->tpl->draw('404', true);
+
+			$this->tpl->assign('content', $content);
+			$this->tpl->assign('title_main', 'Nie znaleziono');
+			$this->tpl->draw('default');
 		}
 	}

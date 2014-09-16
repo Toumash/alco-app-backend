@@ -1,4 +1,7 @@
 <?php
+	if (!defined('R')) {
+		die('This script cannot be run directly!');
+	}
 	require_once R . '/controller/controller.php';
 
 	class LoginController extends Controller
@@ -26,6 +29,7 @@
 		public function login()
 		{
 			$result = false;
+			$model  = null;
 			if (isset($_POST['login']) && isset($_POST['password'])) {
 
 				/** @var $model LoginModel */
@@ -41,11 +45,15 @@
 				$view->success(false);
 			} else {
 				if ($result == true) {
-					$_SESSION['id']   = $result->id;
-					$_SESSION['lvl']  = $result->permission_lvl;
-					$_SESSION['auth'] = true;
+					$_SESSION['id']    = $result->id;
+					$_SESSION['lvl']   = $result->permission_lvl;
+					$_SESSION['auth']  = true;
+					$_SESSION['login'] = $result->login;
 
 					$view->success(true);
+					$model->log->info(
+						'User id:' . $result->id . ' \'' . $result->login . '\' lvl:' . $result->permission_lvl . ' logged-in'
+					);
 				}
 			}
 		}

@@ -1,10 +1,13 @@
 <?php
-
+	if (!defined('R')) {
+		die('This script cannot be run directly!');
+	}
 	define('LVL_VIEW_MAIN', 1);
 	define('LVL_VIEW_USER', 3);
+	define('LVL_VIEW_LOG', 6);
 	define('LVL_MAIN_DELETE', 4);
 	define('LVL_MAIN_ADD', 4);
-	define('LVL_ENABLED', true); // only for checking if lvl ale  enabled
+	define('LVLS_DEFINED', true); // only for checking if lvl are defined
 
 	abstract class Controller
 	{
@@ -83,7 +86,7 @@
 		public function requirePermissionLvl($required)
 		{
 			$lvl = $_SESSION['lvl'];
-			if ($_SESSION['lvl'] < $lvl) {
+			if ($lvl < $required) {
 
 				/** @var $view PermwarningView */
 				$view = $this->loadView('permwarning');

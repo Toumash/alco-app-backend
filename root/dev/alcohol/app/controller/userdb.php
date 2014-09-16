@@ -1,4 +1,7 @@
 <?php
+	if (!defined('R')) {
+		die('This script cannot be run directly!');
+	}
 	require_once R . '/controller/controller.php';
 
 	class UserdbController extends Controller
@@ -7,7 +10,7 @@
 
 		public function index()
 		{
-			$this->requirePermissionLvl(LVL_VIEW_MAIN);
+			$this->requirePermissionLvl(LVL_VIEW_USER);
 
 			/** @var $model MainalcModel */
 			$model    = $this->loadModel('useralc');
