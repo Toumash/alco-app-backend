@@ -41,6 +41,29 @@
 		}
 
 		/**
+		 * @return array list of all existing flags
+		 *               array('name'=>string,
+		 *               'price'=>0.00,
+		 *               'content'=>string)
+		 */
+		public function fetchAllFlags()
+		{
+			$query_string = "SELECT main_alcohols.NAME,main_alcohols.PRICE,alcohol_flags.content FROM main_alcohols,alcohol_flags WHERE alcohol_flags.alcoholID = main_alcohols.ID";
+			$query        = $this->pdo->query($query_string);
+			$data         = array();
+			$tmp          = array();
+			while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
+				$tmp['name']    = $row['NAME'];
+				$tmp['price']   = $row['PRICE'];
+				$tmp['content'] = $row['content'];
+				$data[]         = $tmp;
+				//no need to clean $tmp - new content always override old
+			}
+
+			return $data;
+		}
+
+		/**
 		 * @param $alcohols Alcohol[]
 		 * @param $user     User
 		 *

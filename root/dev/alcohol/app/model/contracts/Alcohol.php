@@ -108,14 +108,14 @@
 		{
 			$alc = array();
 
-			$alc['NAME']    = $this->name;
-			$alc['ID']      = $this->id;
-			$alc['PRICE']   = $this->price;
-			$alc['VOLUME']  = $this->volume;
-			$alc['TYPE']    = $this->type;
-			$alc['SUBTYPE'] = $this->subtype;
-			$alc['DEPOSIT'] = $this->deposit;
-			$alc['PERCENT'] = $this->percent;
+			$alc['n']    = $this->name;
+			$alc['id']   = $this->id;
+			$alc['cost'] = $this->price;
+			$alc['vol']  = $this->volume;
+			$alc['t']    = $this->type;
+			$alc['st']   = $this->subtype;
+			$alc['depo'] = $this->deposit;
+			$alc['pct']  = $this->percent;
 
 			return $alc;
 		}

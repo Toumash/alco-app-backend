@@ -2,7 +2,7 @@
 	define('R_LOGIN_PASSWORD', 'login_password');
 	define('R_ERROR', 'error');
 	define('R_OK', 'ok');
-	define('R_EMPTY', 'empty');
+	define('R_BAD_RQ', 'empty');
 
 	define('DB_TABLE_ALCOHOLS', 'main_alcohols');
 	define('DB_TABLE_USER_ALCOHOLS', 'user_alcohols');
@@ -165,7 +165,7 @@
 					return R_LOGIN_PASSWORD;
 				}
 			} else {
-				return R_EMPTY;
+				return R_BAD_RQ;
 			}
 		}
 
@@ -210,7 +210,7 @@
 					return R_LOGIN_PASSWORD;
 				}
 			} else {
-				return R_EMPTY;
+				return R_BAD_RQ;
 			}
 		}
 
@@ -391,7 +391,7 @@
 					return R_LOGIN_PASSWORD;
 				}
 			} else {
-				return R_EMPTY;
+				return R_BAD_RQ;
 			}
 		}
 
@@ -456,7 +456,7 @@
 					return array('result' => 'no_comments');
 				}
 			} else {
-				return array('result' => R_EMPTY);
+				return array('result' => R_BAD_RQ);
 			}
 		}
 

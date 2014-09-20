@@ -32,7 +32,7 @@
 			$model  = null;
 			if (isset($_POST['login']) && isset($_POST['password'])) {
 
-				/** @var $model LoginModel */
+				/** @var $model UserModel */
 				$model = $this->loadModel('login');
 				global $result;
 

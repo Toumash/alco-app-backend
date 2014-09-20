@@ -5,23 +5,27 @@
 
 	require_once R . '/controller/controller.php';
 
-
+	/* Constants
+	* ===========*/
 	define('R_ERROR', 'error');
 	define('R_OK', 'ok');
 	define('R_NO_METHOD', 'no_method');
 
-	define('R_EMPTY', 'empty');
+	define('R_BAD_RQ', 'bad_request');
 	define('R_NOT_EXISTS', 'not_exists');
 	define('R_LOGIN_PASSWORD', 'login_password');
 	define('R_VOID_SESSION', 'void_session');
 	define('R_NO_SESSION_DATA', 'no_session_token');
 	define('R_NO_JSON', 'no_json');
 	define('R_DB_ERROR', 'db_error');
+	define('R_NO_API_KEY', 'no_api_key');
+	define('R_BAD_API_KEY', 'bad_api_key');
 
 
 	date_default_timezone_set('Europe/Warsaw');
 
 	/**
+	 * EACH request should include <b>api_token</b><br>
 	 * Every public method is created to be used ONLY by the webAPI, not by the internal functions, so DO NOT rely on them. This is MVC, so look at the models.
 	 * Class ApiController
 	 */
@@ -48,6 +52,11 @@
 			return $view;
 		}
 
+		/***
+		 * login<br>
+		 * password<br>
+		 * install_id<br>
+		 */
 		public function login()
 		{
 			$view = $this->jsonView;
@@ -57,24 +66,29 @@
 			if ($data == false) {
 				$this->displayEmptyRQ($view, 'login');
 			} else {
+				if ($this->requireGoodApiToken($data)) {
+					$result = null;
+					if (isset($data['login']) && isset($data['password']) && isset($data['install_id'])) {
 
-				$result = null;
-				if (isset($data['login']) && isset($data['password']) && isset($data['install_id'])) {
+						/** @var $login_model UserModel */
+						$login_model = $this->loadModel('user');
+						$result      = $login_model->createSession(
+							$data['login'],
+							$data['password'],
+							$data['install_id']
+						);
+					}
+					if ($result == null) {
+						$array = $this->buildErrorArray(R_LOGIN_PASSWORD);
+					} elseif ($result == false) {
 
-					/** @var $login_model LoginModel */
-					$login_model = $this->loadModel('login');
-					$result      = $login_model->createSession($data['login'], $data['password'], $data['install_id']);
-				}
-				if ($result == null) {
-					$array = $this->buildErrorArray(R_LOGIN_PASSWORD);
-				} elseif ($result == false) {
-
-					$array = $this->buildErrorArray(R_DB_ERROR);
-				} else {
-					$array = array('result' => R_OK, 'session_token' => $result->token);
+						$array = $this->buildErrorArray(R_DB_ERROR);
+					} else {
+						$array = array('result' => R_OK, 'session_token' => $result->token);
+					}
+					$view->index($array, 'login');
 				}
 			}
-			$view->index($array, 'login');
 		}
 
 		/**
@@ -126,9 +140,43 @@
 			return array('result' => R_ERROR, 'error_info' => $nfo);
 		}
 
-		public function fetchRatings()
+		/**
+		 * @param $data array
+		 *
+		 * @return bool
+		 */
+		private function requireGoodApiToken($data)
 		{
+			if (isset($data['api_token'])) {
+				/** @var $apiModel ApitokenModel */
+				$apiModel = $this->loadModel('apitoken');
 
+				$result = $apiModel->checkExistence($data['api_token']);
+				if ($result == false) {
+					$this->jsonView->index(
+						$this->buildErrorArray(R_BAD_API_KEY),
+						isset($data['action']) ? $data['action'] : 'null'
+					);
+
+					return false;
+				} else {
+					return true;
+				}
+			} else {
+				$this->jsonView->index(
+					$this->buildErrorArray(R_NO_API_KEY),
+					isset($data['action']) ? $data['action'] : 'null'
+				);
+
+				return false;
+			}
+		}
+
+		/**
+		 * STANDARD
+		 */
+		public function fetchProfile()
+		{
 			$view = $this->jsonView;
 			$data = $this->getJSONData();
 
@@ -136,26 +184,20 @@
 			if ($data == false) {
 				$this->displayEmptyRQ($view, 'login');
 			} else {
-				if ($this->requireActiveSession($data, 'fetchRatings')) {
-					$session_token = $data['session_token'];
-					/** @noinspection PhpUnusedLocalVariableInspection */
-					$array = array();
-					if (isset($data['id'])) {
-						$alcohol_id = $data['id'];
-						$limit      = isset($data['count']) ? $data['count'] : 120;
-						/** @var $ratings_model MainalcModel */
-						$ratings_model = $this->loadModel('mainalc');
-						$ratings       = $ratings_model->fetchRatings($alcohol_id, $limit);
-						if ($ratings != null) {
-							$array = array('result' => R_OK, 'data' => $ratings);
+				if ($this->requireGoodApiToken($data)) {
+					if ($this->requireActiveSession($data, 'fetchRatings')) {
+						$session_token = $data['session_token'];
+						$user          = $this->getUserFromSession($session_token);
 
+						if ($user == false) {
+							$view->index($this->buildErrorArray(R_VOID_SESSION), 'fetchProfile');
 						} else {
-							$array = array('result' => R_OK, 'data' => '');
+							/** @var $model UserModel */
+							$model   = $this->loadModel('user');
+							$profile = $model->getPublicUserProfile($user->id);
+							$view->index(array('result' => R_OK, 'data' => $profile), 'fetchProfile');
 						}
-					} else {
-						$array = $this->buildErrorArray(R_EMPTY);
 					}
-					$view->index($array, 'fetchRatings');
 				}
 			}
 		}
@@ -175,8 +217,8 @@
 			$return = false
 		) {
 			if (isset($json['session_token'])) {
-				/** @var $model LoginModel */
-				$model  = $this->loadModel('login');
+				/** @var $model UserModel */
+				$model = $this->loadModel('user');
 				$result = $model->isValidSession(new Session($json['session_token']));
 
 				if ($result == false) {
@@ -199,6 +241,90 @@
 			}
 		}
 
+		/**
+		 * @param $session_token string
+		 *
+		 * @return bool|User false of USER
+		 */
+		private
+		function getUserFromSession(
+			$session_token
+		) {
+			/** @var $login_model UserModel */
+			$login_model = $this->loadModel('user');
+
+			return $login_model->getUserFromSession(new Session($session_token));
+		}
+
+		public function reportBug()
+		{
+
+			$view = $this->jsonView;
+			$data = $this->getJSONData();
+
+
+			if ($data == false) {
+				$this->displayEmptyRQ($view, 'reportbug');
+			} else {
+				if ($this->requireGoodApiToken($data)) {
+					if (isset($data['title']) && isset($data['description']) && isset($data['user']) && isset($data['kind']) && isset($data['priority'])) {
+						$title       = $data['title'];
+						$description = $data['description'];
+						$user        = $data['user'];
+						$kind        = $data['kind'];
+						$priority    = $data['prority'];
+
+						/** @var $model BugsModel */
+						$model = $this->loadModel('bugs');
+						$model->reportBug($title, $description, $user, $kind, $priority);
+					} else {
+						$view->index($this->buildErrorArray(R_BAD_RQ), 'reportBug');
+
+					}
+				}
+			}
+		}
+
+		public function fetchRatings()
+		{
+
+			$view = $this->jsonView;
+			$data = $this->getJSONData();
+
+
+			if ($data == false) {
+				$this->displayEmptyRQ($view, 'login');
+			} else {
+				if ($this->requireGoodApiToken($data)) {
+					if ($this->requireActiveSession($data, 'fetchRatings')) {
+						$session_token = $data['session_token'];
+						/** @noinspection PhpUnusedLocalVariableInspection */
+						$array = array();
+						if (isset($data['id'])) {
+							$alcohol_id = $data['id'];
+							$limit      = isset($data['count']) ? $data['count'] : 120;
+							/** @var $ratings_model MainalcModel */
+							$ratings_model = $this->loadModel('mainalc');
+							$ratings       = $ratings_model->fetchRatings($alcohol_id, $limit);
+							if ($ratings != null) {
+								$array = array('result' => R_OK, 'data' => $ratings);
+
+							} else {
+								$array = array('result' => R_OK, 'data' => '');
+							}
+						} else {
+							$array = $this->buildErrorArray(R_BAD_RQ);
+						}
+						$view->index($array, 'fetchRatings');
+					}
+				}
+			}
+		}
+
+		/**
+		 * STANDARD
+		 * @see ApiController
+		 */
 		public
 		function checkSessionState()
 		{
@@ -208,22 +334,23 @@
 			if ($data == false) {
 				$this->displayEmptyRQ($view, 'checkSession');
 			} else {
-
-				$result = false;
-				if (isset($data['session_token'])) {
-					$result = $this->requireActiveSession($data, 'checkSessionState', true);
-				}
-				if ($result == false) {
-					$view->index($this->buildErrorArray(R_VOID_SESSION), 'checkSession');
-				} else {
-					$view->index(array('result' => R_OK), 'checkSession');
+				if ($this->requireGoodApiToken($data)) {
+					$result = false;
+					if (isset($data['session_token'])) {
+						$result = $this->requireActiveSession($data, 'checkSessionState', true);
+					}
+					if ($result == false) {
+						$view->index($this->buildErrorArray(R_VOID_SESSION), 'checkSession');
+					} else {
+						$view->index(array('result' => R_OK), 'checkSession');
+					}
 				}
 			}
 		}
 
 		/**
-		 * <b>REQUIRES</b> IN JSON:<br>
-		 * session_token<br>
+		 * STANDARD
+		 * @see ApiController
 		 * data:Alcohol[]-><br>
 		 * NAME,<br>
 		 * VOLUME,<br>
@@ -241,43 +368,29 @@
 			if ($data == false) {
 				$this->displayEmptyRQ($view, $actionUpload);
 			} else {
-				if ($this->requireActiveSession($data, $actionUpload)) {
-					$session_token = $data['session_token'];
-					if (isset($data['data'])) {
-						$alcohols = $data['data'];
+				if ($this->requireGoodApiToken($data)) {
+					if ($this->requireActiveSession($data, $actionUpload)) {
+						$session_token = $data['session_token'];
+						if (isset($data['data'])) {
+							$alcohols = $data['data'];
 
-						/** @var $model UseralcModel */
-						$model = $this->loadModel('useralc');
-						$view->index(
-							array(
-								'result' => $model->insertSerial(
-										$model->JSONToAlcohols($alcohols),
-										$this->getUserFromSession($session_token)
-									) ? R_OK : R_ERROR
-							),
-							'upload'
-						);
-
-					} else {
-						$this->index($this->buildErrorArray(R_EMPTY), $actionUpload);
+							/** @var $model UseralcModel */
+							$model = $this->loadModel('useralc');
+							$view->index(
+								array(
+									'result' => $model->insertSerial(
+											$model->JSONToAlcohols($alcohols),
+											$this->getUserFromSession($session_token)
+										) ? R_OK : R_ERROR
+								),
+								'upload'
+							);
+						} else {
+							$this->index($this->buildErrorArray(R_BAD_RQ), $actionUpload);
+						}
 					}
 				}
 			}
-		}
-
-		/**
-		 * @param $session_token
-		 *
-		 * @return bool|User
-		 */
-		private
-		function getUserFromSession(
-			$session_token
-		) {
-			/** @var $login_model LoginModel */
-			$login_model = $this->loadModel('login');
-
-			return $login_model->getUserFromSession($session_token);
 		}
 
 		public
@@ -288,8 +401,8 @@
 		}
 
 		/**
-		 * <b>REQUIRES</b> IN JSON:<br>
-		 * session_token<br>
+		 * STANDARD+
+		 * @see ApiController
 		 * id<br>
 		 * content<br>
 		 * rate<br>
@@ -305,48 +418,49 @@
 			if ($data == false) {
 				$this->displayEmptyRQ($view, $actionRate);
 			} else {
+				if ($this->requireGoodApiToken($data)) {
+					if ($this->requireActiveSession($data, $actionRate)) {
+						$session_token = $data['session_token'];
 
-				if ($this->requireActiveSession($data, $actionRate)) {
-					$session_token = $data['session_token'];
+						if (isset($data['id']) && isset($data['content']) && isset($data['rate'])) {
+							$id      = $data['id'];
+							$content = $data['content'];
+							$rate    = $data['rate'];
 
-					if (isset($data['id']) && isset($data['content']) && isset($data['rate'])) {
-						$id      = $data['id'];
-						$content = $data['content'];
-						$rate    = $data['rate'];
+							/** @var $main_model MainalcModel */
+							$main_model = $this->loadModel('mainalc');
 
-						/** @var $main_model MainalcModel */
-						$main_model = $this->loadModel('mainalc');
+							if ($main_model->exists($id)) {
+								$user = $this->getUserFromSession($session_token);
+								if ($user != false) {
+									$result = $main_model->rate($id, $content, $rate, $user);
 
-						if ($main_model->exists($id)) {
-							$user = $this->getUserFromSession($session_token);
-							if ($user != false) {
-								$result = $main_model->rate($id, $content, $rate, $user);
-
-								if ($result == true) {
-									$return = R_OK;
+									if ($result == true) {
+										$return = R_OK;
+									} else {
+										$return = R_ERROR;
+									}
 								} else {
-									$return = R_ERROR;
+
+									$main_model->log->error('User cannot be retrieved, but session is ok');
 								}
 							} else {
-
-								$main_model->log->error('User cannot be retrieved, but session is ok');
+								$error_info = R_NOT_EXISTS;
 							}
+							//endif EXISTS
+
+
 						} else {
-							$error_info = R_NOT_EXISTS;
+							$error_info = R_BAD_RQ;
 						}
-						//endif EXISTS
-
-
-					} else {
-						$error_info = R_EMPTY;
+						//endif issets
 					}
-					//endif issets
-				}
 
-				if ($return == R_OK) {
-					$view->index(array('result' => R_OK), $actionRate);
-				} else {
-					$view->index($this->buildErrorArray($error_info), $actionRate);
+					if ($return == R_OK) {
+						$view->index(array('result' => R_OK), $actionRate);
+					} else {
+						$view->index($this->buildErrorArray($error_info), $actionRate);
+					}
 				}
 			}
 		}
@@ -360,23 +474,25 @@
 			if ($data == false) {
 				$this->displayEmptyRQ($view, $actionFlag);
 			} else {
-				if ($this->requireActiveSession($data, $actionFlag, false)) {
-					if (isset($data['id']) && isset($data['content'])) {
-						$id      = $data['id'];
-						$content = $data['content'];
+				if ($this->requireGoodApiToken($data)) {
+					if ($this->requireActiveSession($data, $actionFlag, false)) {
+						if (isset($data['id']) && isset($data['content'])) {
+							$id      = $data['id'];
+							$content = $data['content'];
 
-						/** @var $main_model MainalcModel */
-						$main_model = $this->loadModel('mainalc');
+							/** @var $main_model MainalcModel */
+							$main_model = $this->loadModel('mainalc');
 
-						$user   = $this->getUserFromSession($data['session_token']);
-						$result = $main_model->flag($id, $content, $user->id);
+							$user   = $this->getUserFromSession($data['session_token']);
+							$result = $main_model->flag($id, $content, $user->id);
 
-						if ($result == false) {
-							$this->jsonView->index(array('result' => R_ERROR), $actionFlag);
-						} else {
-							$view->index(array('result' => R_OK), $actionFlag);
+							if ($result == false) {
+								$this->jsonView->index(array('result' => R_ERROR), $actionFlag);
+							} else {
+								$view->index(array('result' => R_OK), $actionFlag);
+							}
+
 						}
-
 					}
 				}
 			}
@@ -392,20 +508,19 @@
 			if ($data == false) {
 				$this->displayEmptyRQ($view, $actionDownload);
 			} else {
-
-				if ($this->requireActiveSession($data, $actionDownload)) {
-					/** @var $mainModel MainalcModel */
-					$mainModel   = $this->loadModel('mainalc');
-					$allAlcohols = $mainModel->fetchAll();
-					$view->index(array('result' => R_OK, 'data' => $allAlcohols), $actionDownload);
+				if ($this->requireGoodApiToken($data)) {
+					if ($this->requireActiveSession($data, $actionDownload)) {
+						/** @var $mainModel MainalcModel */
+						$mainModel   = $this->loadModel('mainalc');
+						$allAlcohols = $mainModel->fetchAll();
+						$view->index(array('result' => R_OK, 'data' => $allAlcohols), $actionDownload);
+					}
 				}
-
 			}
 		}
 
 		/**
 		 * Now it only returns json that is stored in the updates/version.json
-		 * //TODO:Upgrage checking for updates
 		 * @return mixed json array - exact copy of /updates/version.json
 		 */
 		public
@@ -429,18 +544,24 @@
 		public
 		function downloadUserDB()
 		{
+
 			$actionDownload = 'downloadUserDB';
 			$view           = $this->jsonView;
 			$data           = $this->getJSONData();
 
+
 			if ($data == false) {
 				$this->displayEmptyRQ($view, $actionDownload);
 			} else {
-				if ($this->requireActiveSession($data, $actionDownload)) {
-					/** @var $mainModel MainalcModel */
-					$mainModel   = $this->loadModel('useralc');
-					$allAlcohols = $mainModel->fetchAll();
-					$view->index(array('result' => R_OK, 'data' => $allAlcohols), $actionDownload);
+				if ($this->requireGoodApiToken($data)) {
+					if ($this->requireGoodApiToken($data)) {
+						if ($this->requireActiveSession($data, $actionDownload)) {
+							/** @var $mainModel MainalcModel */
+							$mainModel   = $this->loadModel('useralc');
+							$allAlcohols = $mainModel->fetchAll();
+							$view->index(array('result' => R_OK, 'data' => $allAlcohols), $actionDownload);
+						}
+					}
 				}
 			}
 		}

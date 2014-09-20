@@ -5,7 +5,7 @@
 	require_once R . '/model/model.php';
 
 
-	class LoginModel extends Model
+	class UserModel extends Model
 	{
 		public function __construct()
 		{
@@ -13,12 +13,6 @@
 			$this->log = Logger::getLogger(__CLASS__);
 		}
 
-		public function delete($id)
-		{
-			$del = $this->pdo->prepare('DELETE FROM categories where id=:id');
-			$del->bindValue(':id', $id, PDO::PARAM_INT);
-			$del->execute();
-		}
 
 		/**
 		 * @param $login      string pure user string
@@ -151,4 +145,42 @@
 			}
 		}
 
+		/**
+		 * @param $user_id
+		 *
+		 * @return bool|Profile false or profile
+		 * @see Profile
+		 */
+		public function getPublicUserProfile($user_id)
+		{
+
+			$sql = $this->pdo->prepare(
+				"SELECT SEX,WEIGHT,EMAIL,COUNT(alcoholID) as 'rat_count' FROM users,alcohol_ratings WHERE users.ID=:user_id AND alcohol_ratings.userID=:user_id LIMIT 1"
+			);
+
+			$sql->bindValue(':user_id', $user_id, PDO::PARAM_INT);
+			$sql->execute();
+			$data = $sql->fetch(PDO::FETCH_ASSOC);
+
+			if (!empty($data)) {
+				$sex = -1;
+				switch ($data['SEX']) {
+					case 0:
+						$sex = 0;
+						break;
+					case 1:
+						$sex = 1;
+						break;
+				}
+				$weight = -1;
+				if (strlen($data['WEIGHT']) > 1) {
+					$weight = $data['WEIGHT'];
+				}
+				$profile = (new Profile($data['EMAIL'], $data['rat_count'], $weight, $sex))->toAPIArray();
+
+				return $profile;
+			} else {
+				return false;
+			}
+		}
 	}

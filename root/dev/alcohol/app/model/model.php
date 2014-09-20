@@ -9,6 +9,7 @@
 	require_once R . '/model/contracts/Alcohol.php';
 	require_once R . '/model/contracts/Session.php';
 	require_once R . '/model/contracts/User.php';
+	require_once R . '/model/contracts/Profile.php';
 
 	abstract class Model
 	{
@@ -30,7 +31,7 @@
 			$this->log = Logger::getLogger(__CLASS__);
 
 			$config_file = R . '/config/config.ini.php';
-			$host        = explode(".", $_SERVER['HTTP_HOST']);
+			$host        = explode('.', $_SERVER['HTTP_HOST']);
 			$subdomain   = array_shift($host);
 			if ($subdomain == 'test' || $subdomain == 'localhost') {
 				$config_file = R . '/config/test_config.ini.php';
