@@ -104,6 +104,17 @@
 			$this->typeString = $typeString;
 		}
 
+		/**
+		 * @return array
+		$alc['n']    = $this->name;
+		 * $alc['id']   = $this->id;
+		 * $alc['cost'] = $this->price;
+		 * $alc['vol']  = $this->volume;
+		 * $alc['t']    = $this->type;
+		 * $alc['st']   = $this->subtype;
+		 * $alc['depo'] = $this->deposit;
+		 * $alc['pct']  = $this->percent;
+		 */
 		public function toAPIArray()
 		{
 			$alc = array();

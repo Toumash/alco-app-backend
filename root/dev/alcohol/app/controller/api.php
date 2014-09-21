@@ -13,11 +13,13 @@
 
 	define('R_BAD_RQ', 'bad_request');
 	define('R_NOT_EXISTS', 'not_exists');
-	define('R_LOGIN_PASSWORD', 'login_password');
+
 	define('R_VOID_SESSION', 'void_session');
 	define('R_NO_SESSION_DATA', 'no_session_token');
-	define('R_NO_JSON', 'no_json');
+	define('R_NO_JSON', 'no_input');
 	define('R_DB_ERROR', 'db_error');
+	define('R_INVALID_LOGIN', 'inv_login');
+
 	define('R_NO_API_KEY', 'no_api_key');
 	define('R_BAD_API_KEY', 'bad_api_key');
 
@@ -79,7 +81,7 @@
 						);
 					}
 					if ($result == null) {
-						$array = $this->buildErrorArray(R_LOGIN_PASSWORD);
+						$array = $this->buildErrorArray(R_INVALID_LOGIN);
 					} elseif ($result == false) {
 
 						$array = $this->buildErrorArray(R_DB_ERROR);
@@ -174,6 +176,12 @@
 
 		/**
 		 * STANDARD
+		 * <br/>
+		 * RETURNS<br/>
+		 *'email'   => email string
+		 * 'ratings' => ratings_count integer
+		 * 'weight'  => weight float
+		 * 'sex'     => sex bool 1 or 0
 		 */
 		public function fetchProfile()
 		{
@@ -310,7 +318,7 @@
 								$array = array('result' => R_OK, 'data' => $ratings);
 
 							} else {
-								$array = array('result' => R_OK, 'data' => '');
+								$array = array('result' => R_OK);
 							}
 						} else {
 							$array = $this->buildErrorArray(R_BAD_RQ);
@@ -498,6 +506,17 @@
 			}
 		}
 
+		/**
+		 * RETURNS<br/>
+		 * $alc['n']    = $this->name;
+		 * $alc['id']   = $this->id;
+		 * $alc['cost'] = $this->price;
+		 * $alc['vol']  = $this->volume;
+		 * $alc['t']    = $this->type;
+		 * $alc['st']   = $this->subtype;
+		 * $alc['depo'] = $this->deposit;
+		 * $alc['pct']  = $this->percent;
+		 */
 		public
 		function downloadMainDB()
 		{

@@ -17,6 +17,10 @@
 
 		/**
 		 * @return array
+		 * 'email'   => $this->email,
+		 * 'ratings' => $this->ratings_count,
+		 * 'weight'  => $this->weight,
+		 * 'sex'     => $this->sex
 		 */
 		public function toAPIArray()
 		{

@@ -13,13 +13,17 @@
 		}
 
 		/**
-		 * @param $alc_id int
-		 * @param $limit  int  how much to fetch
+		 * @param $alc_id
+		 * @param $limit int how much to fetch
 		 *
-		 * @return array|null
+		 * @return array|bool|null false if alcohol not exists null if null ratings
 		 */
 		public function fetchRatings($alc_id, $limit)
 		{
+			$exists       = $this->exists($alc_id);
+			if ($exists == false) {
+				return false;
+			}
 
 			$query_string = "SELECT r.rate,r.time,r.content,u.LOGIN FROM alcohol_ratings AS r,users  AS u WHERE r.userID= u.ID AND r.alcoholID={$alc_id} ORDER BY r.time DESC LIMIT {$limit}";
 			$query        = $this->pdo->query($query_string);
@@ -28,7 +32,7 @@
 				$alc      = array();
 				$alc['d'] = $row['time'];
 				$alc['c'] = $row['content'];
-				$alc['a'] = $row['LOGIN'];
+				$alc['u'] = $row['LOGIN'];
 				$alc['r'] = $row['rate'];
 
 				$result[] = $alc;
@@ -106,6 +110,14 @@
 
 		/**
 		 * @return Alcohol[] with ID
+		 * $alc['n']    = $this->name;
+		 * $alc['id']   = $this->id;
+		 * $alc['cost'] = $this->price;
+		 * $alc['vol']  = $this->volume;
+		 * $alc['t']    = $this->type;
+		 * $alc['st']   = $this->subtype;
+		 * $alc['depo'] = $this->deposit;
+		 * $alc['pct']  = $this->percent;
 		 */
 		public function fetchAll()
 		{
