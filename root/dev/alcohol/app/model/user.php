@@ -7,12 +7,47 @@
 
 	class UserModel extends Model
 	{
+		const REGISTER_OK                 = 0;
+		const REGISTER_ERROR_DB           = 1;
+		const REGISTER_ERROR_LOGIN_IN_USE = 2;
+		const REGISTER_ERROR_EMAIL_IN_USE = 3;
+
+		const REGISTER_BAD_EMAIL    = 10;
+		const REGISTER_BAD_LOGIN    = 11;
+		const REGISTER_BAD_PASSWORD = 12;
+		/**
+		 * @var Database mysqli
+		 */
+		var $db;
+		var $normalOrAPI;
+
 		public function __construct()
 		{
 			parent::__construct();
 			$this->log = Logger::getLogger(__CLASS__);
 		}
 
+		/**
+		 * @param $login
+		 * @param $email
+		 * @param $password
+		 *
+		 * @return bool|int
+		 */
+		public static function validateRegister($login, $email, $password)
+		{
+			if (!preg_match('/^([a-zA-Z0-9])+([a-zA-Z0-9\._-])*@([a-zA-Z0-9_-])+([a-zA-Z0-9\._-]+)+$/', $email)) {
+				return self::REGISTER_BAD_EMAIL;
+			}
+			if (strlen($password) <= 4) {
+				return self::REGISTER_BAD_PASSWORD;
+			}
+			if (strlen($login) <= 3) {
+				return self::REGISTER_BAD_LOGIN;
+			}
+
+			return true;
+		}
 
 		/**
 		 * @param $login      string pure user string
@@ -31,46 +66,62 @@
 				$dbInstallID = $installs_model->getShortInstallID($install_id);
 
 				if ($dbInstallID == false) {
-
 					$installs_model->register($install_id);
-
 					$dbInstallID = $installs_model->getShortInstallID($install_id);
 				}
 
+				try {
+					// Checking if user is already logged-in
+					$sql = $this->pdo->prepare(
+						"SELECT COUNT(s._id) AS c FROM sessions AS s WHERE s.userID=:id AND s.installID=:install_id"
+					);
+					$sql->bindValue(':id', $user->id, PDO::PARAM_INT);
+					$sql->bindValue(':install_id', $dbInstallID, PDO::PARAM_STR);
+					$sql->execute();
+					$r = $sql->fetch(PDO::FETCH_ASSOC);
 
-				// Checking if user is already logged-in
-				$sql = $this->pdo->prepare(
-					"SELECT COUNT(s._id) AS c FROM sessions AS s WHERE s.userID=:id AND s.installID=:install_id"
-				);
-				$sql->bindValue(':id', $user->id, PDO::PARAM_INT);
-				$sql->bindValue(':install_id', $dbInstallID, PDO::PARAM_STR);
-				$sql->execute();
-				$r = $sql->fetch(PDO::FETCH_ASSOC);
+					$session_count = $r['c'];
+				} catch (PDOException $e) {
+					$this->log->error('API::createSession checking logged in users error', $e);
 
-				$session_count = $r['c'];
-
+					return false;
+				}
 
 				// New, generated session_id
 				$new_session_token = md5(uniqid(rand(), true));
 
 				//TODO:error handling
 				$success = false;
+
 				if ($session_count == 0) {
-					$s = $this->pdo->prepare(
-						"INSERT INTO sessions(token,userID,installID) VALUES (:session_token,:userID,:install_id)"
-					);
-					$s->bindValue(':install_id', $install_id, PDO::PARAM_INT);
-					$s->bindValue(':session_token', $new_session_token, PDO::PARAM_INT);
-					$s->bindValue(':userID', $user->id, PDO::PARAM_INT);
-					$success = $s->execute();
+
+					try {
+						$s = $this->pdo->prepare(
+							"INSERT INTO sessions(token,userID,installID) VALUES (:session_token,:userID,:install_id)"
+						);
+						$s->bindValue(':install_id', $install_id, PDO::PARAM_INT);
+						$s->bindValue(':session_token', $new_session_token, PDO::PARAM_INT);
+						$s->bindValue(':userID', $user->id, PDO::PARAM_INT);
+						$success = $s->execute();
+					} catch (PDOException $e) {
+						$this->log->error('API::createSession inserting new session error', $e);
+						$success = false;
+					}
 
 				} else {
-					$s = $this->pdo->prepare(
-						"UPDATE sessions SET token=:token,WHERE installID=:install_id"
-					);
-					$s->bindValue(':token', $new_session_token);
-					$s->bindValue(':install_id', $dbInstallID, PDO::PARAM_INT);
-					$success = $s->execute();
+
+					try {
+						$s = $this->pdo->prepare(
+							"UPDATE sessions SET token=:token,WHERE installID=:install_id"
+						);
+						$s->bindValue(':token', $new_session_token);
+						$s->bindValue(':install_id', $dbInstallID, PDO::PARAM_INT);
+						$success = $s->execute();
+					} catch (PDOException $e) {
+						$this->log->error('API::createSession updating new session error', $e);
+						$success = false;
+					}
+
 				}
 
 				if ($success) {
@@ -181,6 +232,169 @@
 				return $profile;
 			} else {
 				return false;
+			}
+		}
+
+		/**
+		 * @param $login
+		 * @param $email
+		 * @param $password
+		 *
+		 * @return array
+		 */
+		public function register(
+			$login,
+			$email,
+			$password
+		) {
+			$emailExists = $this->emailExists($email);
+			if ($emailExists == true) {
+				return self::REGISTER_ERROR_EMAIL_IN_USE;
+			} elseif ($emailExists == null) {
+				return null;
+			}
+			$loginExists = $this->loginExists($login);
+			if ($loginExists == true) {
+				return self::REGISTER_ERROR_LOGIN_IN_USE;
+			} elseif ($loginExists == null) {
+				return null;
+			}
+
+
+			$activation  = md5(uniqid(rand(), true));
+			$password_db = md5($password);
+			$queryStr    =
+				"INSERT INTO users(login,email,password,activation) VALUES(:login,:email,:password,:activation)";
+			try {
+
+				$insert = $this->pdo->query($queryStr);
+				$insert->bindValue(':login', $login);
+				$insert->bindValue(':email', $email);
+				$insert->bindValue(':password', $password_db); // md5 hashed password
+				$insert->bindValue(':activation', $activation);
+				$insert->execute();
+			} catch (PDOException $e) {
+				$this->log->error('inserting user failed->QUERY:' . $queryStr, $e);
+
+				return null;
+			}
+
+
+			$message = " Aby aktywować konto, kliknij na poniższy link:\n\n";
+			$message .= '<a href="http://dev.code-sharks.pl/alcohol/activation/' . urlencode(
+					$email
+				) . '/' . $activation . '">Aktywuj</a>';
+
+			if (self::sendMail(
+				$email,
+				'Potwierdzenie Rejestracji AlcoholProject',
+				$message
+			)
+			) {
+				$this->log->info('registered ' . $login . 'user ^^');
+			} else {
+				$result = self::sendMail(
+					$email,
+					'Potwierdzenie Rejestracji AlcoholProject',
+					$message
+				);
+				$this->log->error('Error sending activation email. Activation key:"' . $activation . '"');
+
+			}
+
+			return true;
+		}
+
+		/**
+		 * @param $email string
+		 *
+		 * @return bool|null true if exists false if not. <b>NULL</b> if error
+		 */
+		public function emailExists($email)
+		{
+			try {
+				$select = $this->pdo->prepare("SELECT COUNT(*) as c FROM USERS  WHERE EMAIL = :email");
+				$select->bindValue(':email', $email, PDO::PARAM_STR);
+				$select->execute();
+				$data = $select->fetch(PDO::FETCH_ASSOC);
+			} catch (PDOException $e) {
+				$this->log->error('register select count of emails error', $e);
+
+				return null;
+			}
+
+			if ($data['c'] > 0) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		/**
+		 * @param $login string
+		 *
+		 * @return bool|null true if exists false if not. <b>NULL</b> if error
+		 */
+		public function loginExists($login)
+		{
+			try {
+				$select = $this->pdo->prepare("SELECT COUNT(*) as c FROM USERS  WHERE LOGIN = :login");
+				$select->bindValue(':login', $login, PDO::PARAM_STR);
+				$select->execute();
+				$data = $select->fetch(PDO::FETCH_ASSOC);
+			} catch (PDOException $e) {
+				$this->log->error('register select count of logins error', $e);
+
+				return null;
+			}
+
+			if ($data['c'] > 0) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		public static function sendMail(
+			$email,
+			$subject,
+			$content,
+			$contentNonHTML = ''
+		) {
+			require_once(R . '/vendors/phpmailer/class.phpmailer.php');
+
+			/** @noinspection PhpUndefinedClassInspection */
+			$mail = new PHPMailer;
+
+			$mail->IsMail(); // Set mailer to use SMTP
+			$mail->Host       = 'localhost'; // Specify main and backup server
+			$mail->SMTPAuth   = true; // Enable SMTP authentication
+			$mail->Username   = 'registration@code-sharks.pl'; // SMTP username
+			$mail->Password   = 'VaderSeeYou'; // SMTP password
+			$mail->SMTPSecure = 'ssl';
+			$mail->SMTPDebug  = 1; // Enable encryption, 'ssl' also accepted
+			$mail->CharSet    = "UTF-8";
+
+			$mail->From     = 'registration@code-sharks.pl';
+			$mail->FromName = 'CodeSharks Team';
+			$mail->AddAddress($email);
+//$mail->AddReplyTo('info@example.com', 'Information');
+
+			$mail->WordWrap = 50; // Set word wrap to 50 characters
+//$mail->AddAttachment('/var/tmp/file.tar.gz');         // Add attachments
+//$mail->AddAttachment('/tmp/image.jpg', 'new.jpg');    // Optional name
+			$mail->IsHTML(true); // Set email format to HTML
+
+			$mail->Subject = $subject;
+			$mail->Body    = $content;
+			if ($content != '') {
+				$mail->AltBody = $contentNonHTML;
+			}
+
+			if (!$mail->Send()) {
+				return false;
+			} else {
+				return true;
 			}
 		}
 	}
