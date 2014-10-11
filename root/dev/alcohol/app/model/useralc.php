@@ -3,6 +3,14 @@
 		die('This script cannot be run directly');
 	}
 	require_once R . '/model/model.php';
+	define('ALCOHOL_NAME', 'n');
+	define('ALCOHOL_ID', 'id');
+	define('ALCOHOL_VOLUME', 'vol');
+	define('ALCOHOL_TYPE', 't');
+	define('ALCOHOL_SUBTYPE', 'st');
+	define('ALCOHOL_PRICE', 'cost');
+	define('ALCOHOL_DEPOSIT', 'depo');
+	define('ALCOHOL_PERCENT', 'pct');
 
 	class UseralcModel extends Model
 	{
@@ -21,7 +29,7 @@
 		 *
 		 * @return bool
 		 */
-		public function insertSerial($alcohols, $user)
+		public function insertSerial($alcohols, User $user)
 		{
 			try {
 				$this->pdo->beginTransaction();
@@ -43,11 +51,9 @@
 				$this->pdo->commit();
 
 				return true;
-			} catch (Exception $e) {
-				if (isset($this->pdo)) {
-					$this->pdo->rollback();
-					$this->log->error('serial inserting error', $e);
-				}
+			} catch (PDOException $e) {
+				$this->pdo->rollback();
+				$this->log->error('serial inserting error' . $e->getMessage(), $e);
 
 				return false;
 			}
@@ -141,15 +147,15 @@
 		}
 
 		/**
-		 * @param $array array
+		 * @param array $array jsonArray
 		 *
-		 * @return Alcohol[]
+*@return Alcohol[]
 		 */
 		public function JSONToAlcohols($array)
 		{
 			$alcohols = array();
 			foreach ($array as $row) {
-				$alcohols[] = new Alcohol($row['NAME'], $row['PRICE'], $row['TYPE'], $row['SUBTYPE'], $row['VOLUME'], $row['PERCENT'], $row['DEPOSIT']);
+				$alcohols[] = new Alcohol($row[ALCOHOL_NAME], $row[ALCOHOL_PRICE], $row[ALCOHOL_TYPE], $row[ALCOHOL_SUBTYPE], $row[ALCOHOL_VOLUME], $row[ALCOHOL_PERCENT], $row[ALCOHOL_DEPOSIT]);
 			}
 
 			return $alcohols;

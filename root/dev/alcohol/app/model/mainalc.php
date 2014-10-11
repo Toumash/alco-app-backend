@@ -4,6 +4,15 @@
 	}
 	require_once R . '/model/model.php';
 
+	define('ALCOHOL_NAME', 'n');
+	define('ALCOHOL_ID', 'id');
+	define('ALCOHOL_VOLUME', 'vol');
+	define('ALCOHOL_TYPE', 't');
+	define('ALCOHOL_SUBTYPE', 'st');
+	define('ALCOHOL_PRICE', 'cost');
+	define('ALCOHOL_DEPOSIT', 'depo');
+	define('ALCOHOL_PERCENT', 'pct');
+
 	class MainalcModel extends Model
 	{
 		public function __construct()
@@ -187,7 +196,7 @@
 				);
 
 				$array = array();
-				while ($row = $query->fetch()) {
+				while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
 					$alc = new Alcohol($row['NAME'], $row['PRICE'], $row['type'], $row['subtype'], $row['VOLUME'], $row['PERCENT'], $row['DEPOSIT']);
 					$alc->setId($row['ID']);
 					$alc->setTypeString($row['type']);

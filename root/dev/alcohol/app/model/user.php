@@ -181,19 +181,22 @@
 		 */
 		public function getUserFromSession(Session $session)
 		{
-			$select = $this->pdo->prepare(
-				"SELECT ID,PERMISSIONS,ACTIVATION,LOGIN FROM users AS u,sessions AS s WHERE s.token=:token AND s.userID==u.ID LIMIT 1"
-			);
-			$select->bindValue(':token', $session->token, PDO::PARAM_STR);
-			$select->execute();
-			$result = $select->fetch(PDO::FETCH_ASSOC);
-
-			if ($result == false) {
-				return false;
-			} else {
+			try {
+				$select = $this->pdo->prepare(
+					"SELECT ID,PERMISSIONS,ACTIVATION,LOGIN FROM users AS u,sessions AS s WHERE s.token=:token AND s.userID=u.ID LIMIT 1"
+				);
+				$select->bindValue(':token', $session->token, PDO::PARAM_STR);
+				$select->execute();
+				$result = $select->fetch(PDO::FETCH_ASSOC);
 
 				return new User($result['ID'], $result['LOGIN'], $result['ACTIVATION'], $result['PERMISSIONS']);
+			} catch (PDOException $e) {
+				$this->log->error("getUserFromSession error", $e);
+
+				return false;
 			}
+
+
 		}
 
 		/**
@@ -227,9 +230,9 @@
 				if (strlen($data['WEIGHT']) > 1) {
 					$weight = $data['WEIGHT'];
 				}
-				$profile = (new Profile($data['EMAIL'], $data['rat_count'], $weight, $sex))->toAPIArray();
+				$profile = new Profile($data['EMAIL'], $data['rat_count'], $weight, $sex);
 
-				return $profile;
+				return $profile->toAPIArray();
 			} else {
 				return false;
 			}

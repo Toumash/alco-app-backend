@@ -12,7 +12,7 @@
 	define('R_NO_METHOD', 'no_method');
 
 	define('R_BAD_RQ', 'bad_request');
-	define('R_NOT_EXISTS', 'not_exists');
+	define('R_NOT_FOUND', 'not_found');
 
 	define('R_VOID_SESSION', 'void_session');
 	define('R_NO_SESSION_DATA', 'no_session_token');
@@ -22,6 +22,19 @@
 
 	define('R_NO_API_KEY', 'no_api_key');
 	define('R_BAD_API_KEY', 'bad_api_key');
+
+
+	/*
+	 * Indexes of the $_SESSION global variable in the user array<br/>
+	 * Example:<br/>
+	 * $_SESSION[USER_ARRAY][SESSION_LOGGED]
+	*/
+	define('USER_ARRAY', 'user');
+	define('SESSION_LOGGED', 'session_logged');
+	define('SESSION_LOGIN', 'session_login');
+	define('SESSION_PASSWORD', 'session_password');
+	define('SESSION_INSTALL_ID', 'session_install_id');
+	define('SESSION_TOKEN', 'session_token');
 
 
 	date_default_timezone_set('Europe/Warsaw');
@@ -42,6 +55,9 @@
 		{
 			parent::__construct();
 			$this->jsonView = $this->getJSONView();
+			if (!isset($_SESSION[SESSION_LOGGED])) {
+				unset($_SESSION);
+			}
 		}
 
 		/**
@@ -79,15 +95,26 @@
 							$data['password'],
 							$data['install_id']
 						);
-					}
-					if ($result == null) {
-						$array = $this->buildErrorArray(R_INVALID_LOGIN);
-					} elseif ($result == false) {
+						if ($result == null) {
+							$array = $this->buildErrorArray(R_INVALID_LOGIN);
+						} elseif ($result == false) {
 
-						$array = $this->buildErrorArray(R_DB_ERROR);
+							$array = $this->buildErrorArray(R_DB_ERROR);
+						} else {
+							$array = array('result' => R_OK, 'session_token' => $result->token);
+							/*
+							 * SAVING DATA TO THE SESSION GLOBAL VARIABLE
+							 */
+							$_SESSION[USER_ARRAY][SESSION_LOGIN]      = $data['login'];
+							$_SESSION[USER_ARRAY][SESSION_PASSWORD]   = $data['password'];
+							$_SESSION[USER_ARRAY][SESSION_INSTALL_ID] = $data['install_id'];
+							$_SESSION[USER_ARRAY][SESSION_TOKEN]      = $result->token;
+
+						}
 					} else {
-						$array = array('result' => R_OK, 'session_token' => $result->token);
+						$array = $this->buildErrorArray(R_BAD_RQ);
 					}
+
 					$view->index($array, 'login');
 				}
 			}
@@ -104,23 +131,19 @@
 
 
 				$JSON = json_decode($input, true);
-				if ($JSON == false) {
-					return false;
-				}
 
 				$JSON_dump = $JSON;
+
 				if (isset($JSON_dump['password'])) {
 					$JSON_dump['password'] = '---';
 				}
-				if (isset($JSON_dump['api_token'])) {
-					$JSON_dump['api_token'] = '---';
+				if ($JSON == false || $JSON == null) {
+					/** @var $model UseralcModel */
+					$model = $this->loadModel('useralc');
+					$model->log->error('Bad json: ' . json_encode($JSON_dump));
+
+					return false;
 				}
-				if (isset($JSON_dump['install_id'])) {
-					$JSON_dump['install_id'] = '---';
-				}
-				/** @var $model UseralcModel */
-				$model = $this->loadModel('useralc');
-				$model->log->error('Bad json: ' . json_encode($JSON_dump));
 
 				return $JSON;
 			} else {
@@ -240,6 +263,10 @@
 
 				return true;
 			} else {
+				if ($_SESSION[USER_ARRAY][SESSION_LOGGED] == true) {
+					return true;
+				}
+
 				if ($return == false) {
 					$view = $this->jsonView;
 					$view->index($this->buildErrorArray(R_NO_SESSION_DATA), $action);
@@ -262,6 +289,19 @@
 			$login_model = $this->loadModel('user');
 
 			return $login_model->getUserFromSession(new Session($session_token));
+		}
+
+		/**
+		 * returns testing keys for the api
+		 * 7777777777777777777777777777777777777777
+		 */
+		public function obtainTestKeys()
+		{
+			$view = $this->jsonView;
+			$view->index(
+				array('result' => R_OK, 'data' => '7777777777777777777777777777777777777777'),
+				'obtainTestKeys'
+			);
 		}
 
 		public function reportBug()
@@ -314,7 +354,9 @@
 							/** @var $ratings_model MainalcModel */
 							$ratings_model = $this->loadModel('mainalc');
 							$ratings       = $ratings_model->fetchRatings($alcohol_id, $limit);
-							if ($ratings != null) {
+							if ($ratings == false) {
+								$array = $this->buildErrorArray(R_NOT_FOUND);
+							} elseif ($ratings != null) {
 								$array = array('result' => R_OK, 'data' => $ratings);
 
 							} else {
@@ -382,17 +424,23 @@
 						if (isset($data['data'])) {
 							$alcohols = $data['data'];
 
-							/** @var $model UseralcModel */
-							$model = $this->loadModel('useralc');
-							$view->index(
-								array(
-									'result' => $model->insertSerial(
-											$model->JSONToAlcohols($alcohols),
-											$this->getUserFromSession($session_token)
-										) ? R_OK : R_ERROR
-								),
-								'upload'
-							);
+
+							$user = $this->getUserFromSession($session_token);
+							if ($user == false) {
+								$this->index($this->buildErrorArray(R_DB_ERROR), $actionUpload);
+							} else {
+								/** @var $model UseralcModel */
+								$model = $this->loadModel('useralc');
+								$view->index(
+									array(
+										'result' => $model->insertSerial(
+												$model->JSONToAlcohols($alcohols),
+												$user
+											) ? R_OK : R_ERROR
+									),
+									'upload'
+								);
+							}
 						} else {
 							$this->index($this->buildErrorArray(R_BAD_RQ), $actionUpload);
 						}
@@ -453,7 +501,7 @@
 									$main_model->log->error('User cannot be retrieved, but session is ok');
 								}
 							} else {
-								$error_info = R_NOT_EXISTS;
+								$error_info = R_NOT_FOUND;
 							}
 							//endif EXISTS
 
